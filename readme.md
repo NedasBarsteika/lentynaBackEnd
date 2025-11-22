@@ -122,9 +122,9 @@ dotnet ef database update
 dotnet run
 ```
 
-API bus pasiekiama adresu: `https://localhost:7296`
+API bus pasiekiama adresu: `https://localhost:7153`
 
-Swagger dokumentacija: `https://localhost:7296/swagger`
+Swagger dokumentacija: `https://localhost:7153/swagger`
 
 ## Testinės Paskyros
 
