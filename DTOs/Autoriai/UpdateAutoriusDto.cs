@@ -1,0 +1,25 @@
+using System.ComponentModel.DataAnnotations;
+
+namespace lentynaBackEnd.DTOs.Autoriai
+{
+    public class UpdateAutoriusDto
+    {
+        [MaxLength(100)]
+        public string? vardas { get; set; }
+
+        [MaxLength(100)]
+        public string? pavarde { get; set; }
+
+        public DateTime? gimimo_metai { get; set; }
+
+        public DateTime? mirties_data { get; set; }
+
+        public string? curiculum_vitae { get; set; }
+
+        [MaxLength(500)]
+        public string? nuotrauka { get; set; }
+
+        [MaxLength(255)]
+        public string? laidybe { get; set; }
+    }
+}

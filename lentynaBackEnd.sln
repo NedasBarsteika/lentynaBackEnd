@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35828.75 d17.13
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "lentynaBackEnd", "lentynaBackEnd.csproj", "{9B0BFFA1-E9C2-45E1-8B71-BEB848961A10}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9B0BFFA1-E9C2-45E1-8B71-BEB848961A10}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B0BFFA1-E9C2-45E1-8B71-BEB848961A10}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B0BFFA1-E9C2-45E1-8B71-BEB848961A10}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B0BFFA1-E9C2-45E1-8B71-BEB848961A10}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {52149B92-4939-46E3-8736-4ADB89F26E35}
+	EndGlobalSection
+EndGlobal
