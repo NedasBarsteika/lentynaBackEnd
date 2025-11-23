@@ -19,7 +19,12 @@ var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Išsaugoti originalius property pavadinimus (nekonvertuoti į camelCase)
+        options.JsonSerializerOptions.PropertyNamingPolicy = null;
+    });
 builder.Services.AddEndpointsApiExplorer();
 
 // Swagger with JWT support
@@ -139,6 +144,8 @@ builder.Services.AddScoped<ICitataService, CitataService>();
 builder.Services.AddSingleton<IOpenAIService, OpenAIService>();
 builder.Services.AddHttpClient<IMeteoService, MeteoService>();
 builder.Services.AddSingleton<IEmailService, EmailService>();
+builder.Services.AddScoped<IFileUploadService, FileUploadService>();
+builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
@@ -161,6 +168,9 @@ if (app.Environment.IsDevelopment())
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseHttpsRedirection();
+
+// Serve static files (images, etc.) from wwwroot
+app.UseStaticFiles();
 
 app.UseCors("AllowFrontend");
 

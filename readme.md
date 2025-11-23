@@ -593,6 +593,46 @@ Query parametrai:
 }
 ```
 
+---
+
+### Nuotraukų įkėlimas (`/api/uploads`)
+
+| Metodas | Endpoint | JWT | Rolės | Aprašymas |
+|---------|----------|-----|-------|-----------|
+| POST | `/image` | ✅ | - | Įkelti bendrą nuotrauką |
+| POST | `/knygos/virselis` | ✅ | redaktorius, admin | Įkelti knygos viršelį |
+| POST | `/autoriai/nuotrauka` | ✅ | redaktorius, admin | Įkelti autoriaus nuotrauką |
+| POST | `/profilis/nuotrauka` | ✅ | - | Įkelti profilio nuotrauką |
+| DELETE | `/` | ✅ | redaktorius, admin | Ištrinti nuotrauką |
+
+**POST `/image`** - Įkelti nuotrauką
+```
+// Request: multipart/form-data
+file: <binary image data>
+
+// Response
+{
+  "url": "https://localhost:7296/images/abc123.jpg"
+}
+```
+
+**Limtai:**
+- Maksimalus failo dydis: 5 MB
+- Leidžiami formatai: `.jpg`, `.jpeg`, `.png`, `.gif`, `.webp`
+
+**Naudojimo pavyzdys:**
+1. Įkelti nuotrauką: `POST /api/uploads/knygos/virselis`
+2. Gauti URL: `https://localhost:7296/images/knygos/abc123.jpg`
+3. Naudoti URL kuriant knygą: `POST /api/knygos { "virselio_nuotrauka": "https://..." }`
+
+**DELETE `/?url=...`** - Ištrinti nuotrauką
+```
+// Query parameter
+url: https://localhost:7296/images/abc123.jpg
+
+// Response: 204 No Content
+```
+
 ## Autorizacijos Politikos
 
 - **AdminOnly** - tik administratoriai

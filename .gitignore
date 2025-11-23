@@ -364,3 +364,6 @@ FodyWeavers.xsd
 
 # Environment variables
 .env
+
+# Uploaded images (user content)
+wwwroot/images/
