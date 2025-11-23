@@ -11,7 +11,7 @@ namespace lentynaBackEnd.DTOs.Autoriai
         public DateTime? mirties_data { get; set; }
         public string? curiculum_vitae { get; set; }
         public string? nuotrauka { get; set; }
-        public string? laidybe { get; set; }
+        public string? tautybe { get; set; }
         public int knygu_skaicius { get; set; }
         public List<KnygaListDto> knygos { get; set; } = new();
         public List<CitataDto> citatos { get; set; } = new();

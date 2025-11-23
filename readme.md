@@ -231,7 +231,7 @@ Sąrašų endpoint'ai grąžina puslapiuotus rezultatus:
 ```json
 // Request body
 {
-  "role": "redaktorius"   // privalomas, galimos reikšmės: "naudotojas", "redaktorius", "moderatorius", "admin"
+  "role": "redaktorius"   // privalomas, enum: naudotojas, redaktorius, moderatorius, admin
 }
 ```
 
@@ -349,7 +349,7 @@ Query parametrai:
   "mirties_data": "1907-12-08",   // neprivalomas, DateTime
   "curiculum_vitae": "Biografija...", // neprivalomas
   "nuotrauka": "https://...",     // neprivalomas, max 500 simbolių
-  "laidybe": "Lietuvis"           // neprivalomas, max 255 simbolių
+  "tautybe": "Lietuvis"           // neprivalomas, max 100 simbolių
 }
 ```
 
@@ -607,7 +607,7 @@ Query parametrai:
 | `admin` | Pilna prieiga prie sistemos |
 | `moderatorius` | Forumo priežiūra, turinio moderavimas |
 | `redaktorius` | Knygų ir autorių CRUD operacijos |
-| `skaitytojas` | Komentarai, bookshelf, forumas |
+| `naudotojas` | Komentarai, bookshelf, forumas (default rolė registruojantis) |
 
 ## Duomenų Bazės Struktūra
 
@@ -628,7 +628,7 @@ Query parametrai:
 - `mirties_data` (DateTime?)
 - `curiculum_vitae` (string?)
 - `nuotrauka` (string?, max 500)
-- `laidybe` (string?, max 255)
+- `tautybe` (string?, max 100)
 - `knygu_skaicius` (int)
 
 ### Knyga
@@ -639,9 +639,10 @@ Query parametrai:
 - `psl_skaicius` (int?)
 - `ISBN` (string?, max 20, unikalus)
 - `virselio_nuotrauka` (string?, max 500)
-- `raisos` (string?, max 100)
+- `kalba` (string?, max 50)
 - `bestseleris` (bool)
 - `AutoriusId` (Guid, FK -> Autorius)
+- `ZanrasId` (Guid, FK -> Zanras)
 
 ### Zanras
 - `Id` (Guid, PK)
@@ -650,14 +651,7 @@ Query parametrai:
 ### Nuotaika
 - `Id` (Guid, PK)
 - `pavadinimas` (string, max 50)
-
-### KnygaZanras (Many-to-Many)
-- `KnygaId` (Guid, PK, FK -> Knyga)
-- `ZanrasId` (Guid, PK, FK -> Zanras)
-
-### KnygaNuotaika (Many-to-Many)
-- `KnygaId` (Guid, PK, FK -> Knyga)
-- `NuotaikaId` (Guid, PK, FK -> Nuotaika)
+- `ZanrasId` (Guid, FK -> Zanras)
 
 ### Komentaras
 - `Id` (Guid, PK)
@@ -720,7 +714,6 @@ Query parametrai:
 - `isrinkta_knyga_id` (Guid?, FK -> Knyga)
 - `uzbaigtas` (bool)
 - `susitikimo_data` (DateTime?)
-- `oro_prognoze` (string?)
 
 ### Balsas
 - `Id` (Guid, PK)
