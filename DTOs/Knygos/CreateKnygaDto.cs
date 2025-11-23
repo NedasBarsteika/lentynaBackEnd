@@ -20,15 +20,15 @@ namespace lentynaBackEnd.DTOs.Knygos
         [MaxLength(500)]
         public string? virselio_nuotrauka { get; set; }
 
-        [MaxLength(100)]
-        public string? raisos { get; set; }
+        [MaxLength(50)]
+        public string? kalba { get; set; }
 
         public bool bestseleris { get; set; } = false;
 
         [Required(ErrorMessage = "Autorius yra privalomas")]
         public Guid AutoriusId { get; set; }
 
-        public List<Guid> ZanraiIds { get; set; } = new();
-        public List<Guid> NuotaikosIds { get; set; } = new();
+        [Required(ErrorMessage = "Zanras yra privalomas")]
+        public Guid ZanrasId { get; set; }
     }
 }

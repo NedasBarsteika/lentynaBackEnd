@@ -12,15 +12,27 @@ namespace lentynaBackEnd.Services.Implementations
     {
         private readonly IKnygaRepository _knygaRepository;
         private readonly IAutoriusRepository _autoriusRepository;
+        private readonly ISekimasRepository _sekimasRepository;
+        private readonly IOpenAIService _openAIService;
+        private readonly IEmailService _emailService;
+        private readonly ILogger<KnygaService> _logger;
         private readonly IMapper _mapper;
 
         public KnygaService(
             IKnygaRepository knygaRepository,
             IAutoriusRepository autoriusRepository,
+            ISekimasRepository sekimasRepository,
+            IOpenAIService openAIService,
+            IEmailService emailService,
+            ILogger<KnygaService> logger,
             IMapper mapper)
         {
             _knygaRepository = knygaRepository;
             _autoriusRepository = autoriusRepository;
+            _sekimasRepository = sekimasRepository;
+            _openAIService = openAIService;
+            _emailService = emailService;
+            _logger = logger;
             _mapper = mapper;
         }
 
@@ -72,26 +84,54 @@ namespace lentynaBackEnd.Services.Implementations
                 psl_skaicius = dto.psl_skaicius,
                 ISBN = dto.ISBN,
                 virselio_nuotrauka = dto.virselio_nuotrauka,
-                raisos = dto.raisos,
+                kalba = dto.kalba,
                 bestseleris = dto.bestseleris,
-                AutoriusId = dto.AutoriusId
+                AutoriusId = dto.AutoriusId,
+                ZanrasId = dto.ZanrasId
             };
 
             await _knygaRepository.AddAsync(knyga);
-
-            if (dto.ZanraiIds.Count > 0)
-            {
-                await _knygaRepository.AddZanraiAsync(knyga.Id, dto.ZanraiIds);
-            }
-
-            if (dto.NuotaikosIds.Count > 0)
-            {
-                await _knygaRepository.AddNuotaikosAsync(knyga.Id, dto.NuotaikosIds);
-            }
-
             await _autoriusRepository.UpdateKnyguSkaicius(dto.AutoriusId);
 
+            // Send email notifications to author's followers
+            await SendNewBookNotificationsAsync(autorius, knyga.knygos_pavadinimas);
+
             return await GetByIdAsync(knyga.Id);
+        }
+
+        private async Task SendNewBookNotificationsAsync(Autorius autorius, string bookTitle)
+        {
+            try
+            {
+                var followers = await _sekimasRepository.GetFollowersByAutoriusIdAsync(autorius.Id);
+                var authorName = $"{autorius.vardas} {autorius.pavarde}";
+
+                foreach (var follower in followers)
+                {
+                    if (follower.Naudotojas == null || string.IsNullOrEmpty(follower.Naudotojas.el_pastas))
+                        continue;
+
+                    try
+                    {
+                        await _emailService.SendNewBookNotificationAsync(
+                            follower.Naudotojas.el_pastas,
+                            follower.Naudotojas.slapyvardis ?? "Skaitytojau",
+                            authorName,
+                            bookTitle);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to send notification to {Email}", follower.Naudotojas.el_pastas);
+                    }
+                }
+
+                _logger.LogInformation("Sent new book notifications for '{BookTitle}' to {Count} followers",
+                    bookTitle, followers.Count());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending new book notifications");
+            }
         }
 
         public async Task<(Result Result, KnygaDetailDto? Knyga)> UpdateAsync(Guid id, UpdateKnygaDto dto)
@@ -111,8 +151,9 @@ namespace lentynaBackEnd.Services.Implementations
             if (dto.psl_skaicius.HasValue) knyga.psl_skaicius = dto.psl_skaicius;
             if (dto.ISBN != null) knyga.ISBN = dto.ISBN;
             if (dto.virselio_nuotrauka != null) knyga.virselio_nuotrauka = dto.virselio_nuotrauka;
-            if (dto.raisos != null) knyga.raisos = dto.raisos;
+            if (dto.kalba != null) knyga.kalba = dto.kalba;
             if (dto.bestseleris.HasValue) knyga.bestseleris = dto.bestseleris.Value;
+            if (dto.ZanrasId.HasValue) knyga.ZanrasId = dto.ZanrasId.Value;
 
             if (dto.AutoriusId.HasValue && dto.AutoriusId.Value != knyga.AutoriusId)
             {
@@ -125,24 +166,6 @@ namespace lentynaBackEnd.Services.Implementations
             }
 
             await _knygaRepository.UpdateAsync(knyga);
-
-            if (dto.ZanraiIds != null)
-            {
-                await _knygaRepository.RemoveZanraiAsync(id);
-                if (dto.ZanraiIds.Count > 0)
-                {
-                    await _knygaRepository.AddZanraiAsync(id, dto.ZanraiIds);
-                }
-            }
-
-            if (dto.NuotaikosIds != null)
-            {
-                await _knygaRepository.RemoveNuotaikosAsync(id);
-                if (dto.NuotaikosIds.Count > 0)
-                {
-                    await _knygaRepository.AddNuotaikosAsync(id, dto.NuotaikosIds);
-                }
-            }
 
             if (dto.AutoriusId.HasValue && dto.AutoriusId.Value != oldAutoriusId)
             {
@@ -172,6 +195,75 @@ namespace lentynaBackEnd.Services.Implementations
             await _autoriusRepository.UpdateKnyguSkaicius(autoriusId);
 
             return Result.Success();
+        }
+
+        public async Task<List<KnygaListDto>> IsplestinePaieskaAsync(IsplestinePaieskaDto dto)
+        {
+            // Check if any filter is provided
+            var hasZanruFilter = dto.ZanruIds != null && dto.ZanruIds.Count > 0;
+            var hasNuotaikuFilter = dto.NuotaikuIds != null && dto.NuotaikuIds.Count > 0;
+            var hasScenarijusFilter = !string.IsNullOrWhiteSpace(dto.ScenarijausAprasymas);
+
+            IEnumerable<Knyga> knygosList;
+
+            // Get books filtered by genres and/or moods
+            if (hasZanruFilter || hasNuotaikuFilter)
+            {
+                knygosList = await _knygaRepository.GetBooksForAdvancedSearchAsync(dto.ZanruIds, dto.NuotaikuIds);
+            }
+            else
+            {
+                // No genre/mood filters - get all books
+                var filter = new KnygaFilterDto { page = 1, pageSize = 100 };
+                var (allKnygos, _) = await _knygaRepository.GetAllAsync(filter);
+                knygosList = allKnygos;
+            }
+
+            var knygosListMaterialized = knygosList.ToList();
+
+            // If no scenario description, just return filtered results
+            if (!hasScenarijusFilter)
+            {
+                var result = new List<KnygaListDto>();
+                foreach (var knyga in knygosListMaterialized.Take(10))
+                {
+                    var knygaDto = _mapper.Map<KnygaListDto>(knyga);
+                    knygaDto.vidutinis_vertinimas = await _knygaRepository.GetAverageRatingAsync(knyga.Id);
+                    knygaDto.komentaru_skaicius = await _knygaRepository.GetReviewCountAsync(knyga.Id);
+                    result.Add(knygaDto);
+                }
+                return result;
+            }
+
+            // Prepare data for AI
+            var knyguSearchDtos = knygosListMaterialized.Select(k => new KnygaSearchDto
+            {
+                Id = k.Id,
+                Pavadinimas = k.knygos_pavadinimas,
+                Aprasymas = k.aprasymas,
+                Zanras = k.Zanras?.pavadinimas ?? ""
+            }).ToList();
+
+            // Call AI to find matching books based on scenario description
+            var matchingIds = await _openAIService.IeskoitKnyguPagalAprasymaAsync(
+                dto.ScenarijausAprasymas!,
+                knyguSearchDtos);
+
+            // Get matching books in order returned by AI
+            var matchedKnygos = new List<KnygaListDto>();
+            foreach (var matchId in matchingIds)
+            {
+                var knyga = knygosListMaterialized.FirstOrDefault(k => k.Id == matchId);
+                if (knyga != null)
+                {
+                    var knygaDto = _mapper.Map<KnygaListDto>(knyga);
+                    knygaDto.vidutinis_vertinimas = await _knygaRepository.GetAverageRatingAsync(knyga.Id);
+                    knygaDto.komentaru_skaicius = await _knygaRepository.GetReviewCountAsync(knyga.Id);
+                    matchedKnygos.Add(knygaDto);
+                }
+            }
+
+            return matchedKnygos;
         }
     }
 }

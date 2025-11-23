@@ -61,5 +61,13 @@ namespace lentynaBackEnd.Repositories.Implementations
             return await _context.Autoriaus_sekimai
                 .CountAsync(s => s.AutoriusId == autoriusId);
         }
+
+        public async Task<IEnumerable<Autoriaus_sekimas>> GetFollowersByAutoriusIdAsync(Guid autoriusId)
+        {
+            return await _context.Autoriaus_sekimai
+                .Where(s => s.AutoriusId == autoriusId)
+                .Include(s => s.Naudotojas)
+                .ToListAsync();
+        }
     }
 }

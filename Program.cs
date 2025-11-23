@@ -1,4 +1,5 @@
 using System.Text;
+using DotNetEnv;
 using lentynaBackEnd.Data;
 using lentynaBackEnd.Helpers;
 using lentynaBackEnd.Middleware;
@@ -10,6 +11,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+
+// Load .env file
+Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -132,6 +136,9 @@ builder.Services.AddScoped<ITemaService, TemaService>();
 builder.Services.AddScoped<IBalsavimasService, BalsavimasService>();
 builder.Services.AddScoped<ISekimasService, SekimasService>();
 builder.Services.AddScoped<ICitataService, CitataService>();
+builder.Services.AddSingleton<IOpenAIService, OpenAIService>();
+builder.Services.AddHttpClient<IMeteoService, MeteoService>();
+builder.Services.AddSingleton<IEmailService, EmailService>();
 
 var app = builder.Build();
 

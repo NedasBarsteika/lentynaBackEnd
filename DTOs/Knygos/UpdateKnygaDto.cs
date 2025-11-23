@@ -19,14 +19,13 @@ namespace lentynaBackEnd.DTOs.Knygos
         [MaxLength(500)]
         public string? virselio_nuotrauka { get; set; }
 
-        [MaxLength(100)]
-        public string? raisos { get; set; }
+        [MaxLength(50)]
+        public string? kalba { get; set; }
 
         public bool? bestseleris { get; set; }
 
         public Guid? AutoriusId { get; set; }
 
-        public List<Guid>? ZanraiIds { get; set; }
-        public List<Guid>? NuotaikosIds { get; set; }
+        public Guid? ZanrasId { get; set; }
     }
 }

@@ -124,12 +124,9 @@ namespace lentynaBackEnd.Services.Implementations
             var zanraiIds = new HashSet<Guid>();
             foreach (var irasas in perskaitytos)
             {
-                if (irasas.Knyga?.KnygaZanrai != null)
+                if (irasas.Knyga != null)
                 {
-                    foreach (var kz in irasas.Knyga.KnygaZanrai)
-                    {
-                        zanraiIds.Add(kz.ZanrasId);
-                    }
+                    zanraiIds.Add(irasas.Knyga.ZanrasId);
                 }
             }
 
@@ -165,10 +162,10 @@ namespace lentynaBackEnd.Services.Implementations
         {
             int score = 0;
 
-            // Score for matching genres
-            if (knyga.KnygaZanrai != null)
+            // Score for matching genre
+            if (zanraiIds.Contains(knyga.ZanrasId))
             {
-                score += knyga.KnygaZanrai.Count(kz => zanraiIds.Contains(kz.ZanrasId)) * 2;
+                score += 2;
             }
 
             // Score for followed author

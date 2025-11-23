@@ -19,7 +19,7 @@ namespace lentynaBackEnd.DTOs.Autoriai
         [MaxLength(500)]
         public string? nuotrauka { get; set; }
 
-        [MaxLength(255)]
-        public string? laidybe { get; set; }
+        [MaxLength(100)]
+        public string? tautybe { get; set; }
     }
 }

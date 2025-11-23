@@ -31,7 +31,7 @@ namespace lentynaBackEnd.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     nuotrauka = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    laidybe = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: true)
+                    tautybe = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     knygu_skaicius = table.Column<int>(type: "int", nullable: false)
                 },
@@ -61,20 +61,6 @@ namespace lentynaBackEnd.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Naudotojai", x => x.Id);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.CreateTable(
-                name: "Nuotaikos",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    pavadinimas = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Nuotaikos", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -113,38 +99,6 @@ namespace lentynaBackEnd.Migrations
                         principalTable: "Autoriai",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.CreateTable(
-                name: "Knygos",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    knygos_pavadinimas = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    leidimo_metai = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    aprasymas = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    psl_skaicius = table.Column<int>(type: "int", nullable: true),
-                    ISBN = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    virselio_nuotrauka = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    raisos = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    bestseleris = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    AutoriusId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Knygos", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Knygos_Autoriai_AutoriusId",
-                        column: x => x.AutoriusId,
-                        principalTable: "Autoriai",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -223,6 +177,66 @@ namespace lentynaBackEnd.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "Knygos",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    knygos_pavadinimas = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    leidimo_metai = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    aprasymas = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    psl_skaicius = table.Column<int>(type: "int", nullable: true),
+                    ISBN = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    virselio_nuotrauka = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    kalba = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    bestseleris = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    AutoriusId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    ZanrasId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Knygos", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Knygos_Autoriai_AutoriusId",
+                        column: x => x.AutoriusId,
+                        principalTable: "Autoriai",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Knygos_Zanrai_ZanrasId",
+                        column: x => x.ZanrasId,
+                        principalTable: "Zanrai",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "Nuotaikos",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    pavadinimas = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ZanrasId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Nuotaikos", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Nuotaikos_Zanrai_ZanrasId",
+                        column: x => x.ZanrasId,
+                        principalTable: "Zanrai",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "Balsavimai",
                 columns: table => new
                 {
@@ -231,9 +245,7 @@ namespace lentynaBackEnd.Migrations
                     balsavimo_pabaiga = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     isrinkta_knyga_id = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     uzbaigtas = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    susitikimo_data = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    oro_prognoze = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                    susitikimo_data = table.Column<DateTime>(type: "datetime(6)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -266,56 +278,6 @@ namespace lentynaBackEnd.Migrations
                         name: "FK_DI_Komentarai_Knygos_KnygaId",
                         column: x => x.KnygaId,
                         principalTable: "Knygos",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.CreateTable(
-                name: "KnygaNuotaikos",
-                columns: table => new
-                {
-                    KnygaId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    NuotaikaId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_KnygaNuotaikos", x => new { x.KnygaId, x.NuotaikaId });
-                    table.ForeignKey(
-                        name: "FK_KnygaNuotaikos_Knygos_KnygaId",
-                        column: x => x.KnygaId,
-                        principalTable: "Knygos",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_KnygaNuotaikos_Nuotaikos_NuotaikaId",
-                        column: x => x.NuotaikaId,
-                        principalTable: "Nuotaikos",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.CreateTable(
-                name: "KnygaZanrai",
-                columns: table => new
-                {
-                    KnygaId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    ZanrasId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_KnygaZanrai", x => new { x.KnygaId, x.ZanrasId });
-                    table.ForeignKey(
-                        name: "FK_KnygaZanrai_Knygos_KnygaId",
-                        column: x => x.KnygaId,
-                        principalTable: "Knygos",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_KnygaZanrai_Zanrai_ZanrasId",
-                        column: x => x.ZanrasId,
-                        principalTable: "Zanrai",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
@@ -429,13 +391,14 @@ namespace lentynaBackEnd.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.InsertData(
-                table: "Nuotaikos",
-                columns: new[] { "Id", "pavadinimas" },
+                table: "Autoriai",
+                columns: new[] { "Id", "curiculum_vitae", "gimimo_metai", "knygu_skaicius", "mirties_data", "nuotrauka", "pavarde", "tautybe", "vardas" },
                 values: new object[,]
                 {
-                    { new Guid("11111111-1111-1111-1111-111111111111"), "Džiugi" },
-                    { new Guid("22222222-2222-2222-2222-222222222222"), "Liūdna" },
-                    { new Guid("33333333-3333-3333-3333-333333333333"), "Neutrali" }
+                    { new Guid("b0000000-0000-0000-0000-000000000001"), "Lietuviu rasytojas, poetas, publicistas.", new DateTime(1879, 4, 11, 0, 0, 0, 0, DateTimeKind.Unspecified), 2, new DateTime(1907, 12, 8, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "Biliunas", "Lietuvis", "Jonas" },
+                    { new Guid("b0000000-0000-0000-0000-000000000002"), "Lietuviu rasytojas, dramaturgas.", new DateTime(1882, 10, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), 2, new DateTime(1954, 7, 7, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "Kreve-Mickevicius", "Lietuvis", "Vincas" },
+                    { new Guid("b0000000-0000-0000-0000-000000000003"), "Lietuviu poetas, dramaturgas.", new DateTime(1896, 2, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), 1, new DateTime(1947, 10, 16, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "Sruoga", "Lietuvis", "Balys" },
+                    { new Guid("b0000000-0000-0000-0000-000000000004"), "Anglu rasytojas ir zurnalistas.", new DateTime(1903, 6, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), 2, new DateTime(1950, 1, 21, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "Orwell", "Anglas", "George" }
                 });
 
             migrationBuilder.InsertData(
@@ -448,9 +411,34 @@ namespace lentynaBackEnd.Migrations
                     { new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), "Fantastika" },
                     { new Guid("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"), "Detektyvai" },
                     { new Guid("cccccccc-cccc-cccc-cccc-cccccccccccc"), "Romanai" },
-                    { new Guid("dddddddd-dddd-dddd-dddd-dddddddddddd"), "Mokslinė fantastika" },
+                    { new Guid("dddddddd-dddd-dddd-dddd-dddddddddddd"), "Mokslune fantastika" },
                     { new Guid("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"), "Istoriniai" },
                     { new Guid("ffffffff-ffff-ffff-ffff-ffffffffffff"), "Biografijos" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Knygos",
+                columns: new[] { "Id", "AutoriusId", "ISBN", "ZanrasId", "aprasymas", "bestseleris", "kalba", "knygos_pavadinimas", "leidimo_metai", "psl_skaicius", "virselio_nuotrauka" },
+                values: new object[,]
+                {
+                    { new Guid("c0000000-0000-0000-0000-000000000001"), new Guid("b0000000-0000-0000-0000-000000000001"), "9785417012345", new Guid("cccccccc-cccc-cccc-cccc-cccccccccccc"), "Viena garsiausiu J. Biliuno noveliu.", false, "Lietuviu", "Liudna pasaka", new DateTime(1907, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), 24, null },
+                    { new Guid("c0000000-0000-0000-0000-000000000002"), new Guid("b0000000-0000-0000-0000-000000000001"), "9785417012346", new Guid("cccccccc-cccc-cccc-cccc-cccccccccccc"), "Novele apie kaltes jausma.", false, "Lietuviu", "Kliudziau", new DateTime(1906, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), 18, null },
+                    { new Guid("c0000000-0000-0000-0000-000000000003"), new Guid("b0000000-0000-0000-0000-000000000002"), "9785417012347", new Guid("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"), "Istorine drama apie Lietuvos kunigaiksti.", false, "Lietuviu", "Skirgaila", new DateTime(1925, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), 180, null },
+                    { new Guid("c0000000-0000-0000-0000-000000000004"), new Guid("b0000000-0000-0000-0000-000000000003"), "9785417012349", new Guid("ffffffff-ffff-ffff-ffff-ffffffffffff"), "Memuarai apie Stuthofo koncentracijos stovykla.", true, "Lietuviu", "Dievu miskas", new DateTime(1957, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), 320, null },
+                    { new Guid("c0000000-0000-0000-0000-000000000005"), new Guid("b0000000-0000-0000-0000-000000000004"), "9780451524935", new Guid("dddddddd-dddd-dddd-dddd-dddddddddddd"), "Distopinis romanas apie totalitarine visuomene.", true, "Anglu", "1984", new DateTime(1949, 6, 8, 0, 0, 0, 0, DateTimeKind.Unspecified), 328, null },
+                    { new Guid("c0000000-0000-0000-0000-000000000006"), new Guid("b0000000-0000-0000-0000-000000000004"), "9780451526342", new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), "Alegorine pasaka apie gyvulius.", true, "Anglu", "Gyvuliu ukis", new DateTime(1945, 8, 17, 0, 0, 0, 0, DateTimeKind.Unspecified), 112, null }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Nuotaikos",
+                columns: new[] { "Id", "ZanrasId", "pavadinimas" },
+                values: new object[,]
+                {
+                    { new Guid("11111111-1111-1111-1111-111111111111"), new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), "Dziugi" },
+                    { new Guid("22222222-2222-2222-2222-222222222222"), new Guid("cccccccc-cccc-cccc-cccc-cccccccccccc"), "Liudna" },
+                    { new Guid("33333333-3333-3333-3333-333333333333"), new Guid("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"), "Neutrali" },
+                    { new Guid("44444444-4444-4444-4444-444444444444"), new Guid("11111111-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), "Itemptas" },
+                    { new Guid("55555555-5555-5555-5555-555555555555"), new Guid("cccccccc-cccc-cccc-cccc-cccccccccccc"), "Romantiskas" }
                 });
 
             migrationBuilder.CreateIndex(
@@ -504,16 +492,6 @@ namespace lentynaBackEnd.Migrations
                 column: "NaudotojasId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_KnygaNuotaikos_NuotaikaId",
-                table: "KnygaNuotaikos",
-                column: "NuotaikaId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_KnygaZanrai_ZanrasId",
-                table: "KnygaZanrai",
-                column: "ZanrasId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Knygos_AutoriusId",
                 table: "Knygos",
                 column: "AutoriusId");
@@ -523,6 +501,11 @@ namespace lentynaBackEnd.Migrations
                 table: "Knygos",
                 column: "ISBN",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Knygos_ZanrasId",
+                table: "Knygos",
+                column: "ZanrasId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Knygos_rekomendacijos_NaudotojasId",
@@ -557,6 +540,11 @@ namespace lentynaBackEnd.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Nuotaikos_ZanrasId",
+                table: "Nuotaikos",
+                column: "ZanrasId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Temos_NaudotojasId",
                 table: "Temos",
                 column: "NaudotojasId");
@@ -587,25 +575,16 @@ namespace lentynaBackEnd.Migrations
                 name: "Irasai");
 
             migrationBuilder.DropTable(
-                name: "KnygaNuotaikos");
-
-            migrationBuilder.DropTable(
-                name: "KnygaZanrai");
-
-            migrationBuilder.DropTable(
                 name: "Komentarai");
+
+            migrationBuilder.DropTable(
+                name: "Nuotaikos");
 
             migrationBuilder.DropTable(
                 name: "Balsavimai");
 
             migrationBuilder.DropTable(
                 name: "Knygos_rekomendacijos");
-
-            migrationBuilder.DropTable(
-                name: "Nuotaikos");
-
-            migrationBuilder.DropTable(
-                name: "Zanrai");
 
             migrationBuilder.DropTable(
                 name: "Temos");
@@ -618,6 +597,9 @@ namespace lentynaBackEnd.Migrations
 
             migrationBuilder.DropTable(
                 name: "Autoriai");
+
+            migrationBuilder.DropTable(
+                name: "Zanrai");
         }
     }
 }

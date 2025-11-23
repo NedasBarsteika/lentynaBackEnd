@@ -23,8 +23,6 @@ namespace lentynaBackEnd.Models.Entities
 
         public DateTime? susitikimo_data { get; set; }
 
-        public string? oro_prognoze { get; set; }
-
         // Navigation properties
         public List<Balsas> Balsai { get; set; } = new();
     }

@@ -104,21 +104,21 @@ namespace lentynaBackEnd.Data
                         Id = Guid.NewGuid(),
                         citatos_tekstas = "Kas kontroliuoja praeitį, tas kontroliuoja ateitį. Kas kontroliuoja dabartį, tas kontroliuoja praeitį.",
                         citatos_saltinis = "1984",
-                        AutoriusId = Guid.Parse("b0000000-0000-0000-0000-000000000005")
+                        AutoriusId = Guid.Parse("b0000000-0000-0000-0000-000000000004")
                     },
                     new Citata
                     {
                         Id = Guid.NewGuid(),
                         citatos_tekstas = "Visi gyvūnai yra lygūs, bet kai kurie gyvūnai yra lygesni už kitus.",
                         citatos_saltinis = "Gyvulių ūkis",
-                        AutoriusId = Guid.Parse("b0000000-0000-0000-0000-000000000005")
+                        AutoriusId = Guid.Parse("b0000000-0000-0000-0000-000000000004")
                     },
                     new Citata
                     {
                         Id = Guid.NewGuid(),
                         citatos_tekstas = "Karas yra taika. Laisvė yra vergija. Nežinojimas yra jėga.",
                         citatos_saltinis = "1984",
-                        AutoriusId = Guid.Parse("b0000000-0000-0000-0000-000000000005")
+                        AutoriusId = Guid.Parse("b0000000-0000-0000-0000-000000000004")
                     }
                 };
 
@@ -192,7 +192,7 @@ namespace lentynaBackEnd.Data
                         komentaro_data = DateTime.UtcNow.AddDays(-8),
                         vertinimas = 5,
                         NaudotojasId = Guid.Parse("a0000000-0000-0000-0000-000000000005"),
-                        KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000008") // 1984
+                        KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000005") // 1984
                     },
                     new Komentaras
                     {
@@ -201,7 +201,7 @@ namespace lentynaBackEnd.Data
                         komentaro_data = DateTime.UtcNow.AddDays(-6),
                         vertinimas = 4,
                         NaudotojasId = Guid.Parse("a0000000-0000-0000-0000-000000000004"),
-                        KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000009") // Gyvulių ūkis
+                        KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000006") // Gyvulių ūkis
                     },
                     new Komentaras
                     {
@@ -291,7 +291,7 @@ namespace lentynaBackEnd.Data
                         tipas = BookshelfTypes.norima_skaityti,
                         sukurimo_data = DateTime.UtcNow.AddDays(-2),
                         NaudotojasId = Guid.Parse("a0000000-0000-0000-0000-000000000004"),
-                        KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000008") // 1984
+                        KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000005") // 1984
                     },
                     // Jonas123 bookshelf
                     new Irasas
@@ -300,7 +300,7 @@ namespace lentynaBackEnd.Data
                         tipas = BookshelfTypes.skaityta,
                         sukurimo_data = DateTime.UtcNow.AddDays(-15),
                         NaudotojasId = Guid.Parse("a0000000-0000-0000-0000-000000000005"),
-                        KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000008") // 1984
+                        KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000005") // 1984
                     },
                     new Irasas
                     {
@@ -308,7 +308,7 @@ namespace lentynaBackEnd.Data
                         tipas = BookshelfTypes.skaityta,
                         sukurimo_data = DateTime.UtcNow.AddDays(-10),
                         NaudotojasId = Guid.Parse("a0000000-0000-0000-0000-000000000005"),
-                        KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000009") // Gyvulių ūkis
+                        KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000006") // Gyvulių ūkis
                     },
                     new Irasas
                     {
@@ -350,12 +350,12 @@ namespace lentynaBackEnd.Data
                     new Autoriaus_sekimas
                     {
                         NaudotojasId = Guid.Parse("a0000000-0000-0000-0000-000000000005"),
-                        AutoriusId = Guid.Parse("b0000000-0000-0000-0000-000000000005") // George Orwell
+                        AutoriusId = Guid.Parse("b0000000-0000-0000-0000-000000000004") // George Orwell
                     },
                     new Autoriaus_sekimas
                     {
                         NaudotojasId = Guid.Parse("a0000000-0000-0000-0000-000000000005"),
-                        AutoriusId = Guid.Parse("b0000000-0000-0000-0000-000000000004") // Kristina Sabaliauskaitė
+                        AutoriusId = Guid.Parse("b0000000-0000-0000-0000-000000000003") // Balys Sruoga
                     }
                 };
 
@@ -375,8 +375,7 @@ namespace lentynaBackEnd.Data
                         balsavimo_pabaiga = DateTime.UtcNow.AddDays(-7),
                         isrinkta_knyga_id = Guid.Parse("c0000000-0000-0000-0000-000000000005"), // Dievų miškas
                         uzbaigtas = true,
-                        susitikimo_data = DateTime.UtcNow.AddDays(-5),
-                        oro_prognoze = "Debesuota, 15°C"
+                        susitikimo_data = DateTime.UtcNow.AddDays(-5)
                     },
                     new Balsavimas
                     {
@@ -421,7 +420,7 @@ namespace lentynaBackEnd.Data
                         pateikimo_data = DateTime.UtcNow.AddDays(-2),
                         NaudotojasId = Guid.Parse("a0000000-0000-0000-0000-000000000004"),
                         BalsavimasId = Guid.Parse("e0000000-0000-0000-0000-000000000002"),
-                        KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000008") // 1984
+                        KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000005") // 1984
                     },
                     new Balsas
                     {

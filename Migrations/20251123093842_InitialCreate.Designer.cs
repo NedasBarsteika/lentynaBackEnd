@@ -12,7 +12,7 @@ using lentynaBackEnd.Data;
 namespace lentynaBackEnd.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251122181547_InitialCreate")]
+    [Migration("20251123093842_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -58,10 +58,6 @@ namespace lentynaBackEnd.Migrations
                     b.Property<int>("knygu_skaicius")
                         .HasColumnType("int");
 
-                    b.Property<string>("laidybe")
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar(255)");
-
                     b.Property<DateTime?>("mirties_data")
                         .HasColumnType("datetime(6)");
 
@@ -74,6 +70,10 @@ namespace lentynaBackEnd.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
 
+                    b.Property<string>("tautybe")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
                     b.Property<string>("vardas")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -82,6 +82,52 @@ namespace lentynaBackEnd.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Autoriai");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("b0000000-0000-0000-0000-000000000001"),
+                            curiculum_vitae = "Lietuviu rasytojas, poetas, publicistas.",
+                            gimimo_metai = new DateTime(1879, 4, 11, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            knygu_skaicius = 2,
+                            mirties_data = new DateTime(1907, 12, 8, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            pavarde = "Biliunas",
+                            tautybe = "Lietuvis",
+                            vardas = "Jonas"
+                        },
+                        new
+                        {
+                            Id = new Guid("b0000000-0000-0000-0000-000000000002"),
+                            curiculum_vitae = "Lietuviu rasytojas, dramaturgas.",
+                            gimimo_metai = new DateTime(1882, 10, 19, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            knygu_skaicius = 2,
+                            mirties_data = new DateTime(1954, 7, 7, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            pavarde = "Kreve-Mickevicius",
+                            tautybe = "Lietuvis",
+                            vardas = "Vincas"
+                        },
+                        new
+                        {
+                            Id = new Guid("b0000000-0000-0000-0000-000000000003"),
+                            curiculum_vitae = "Lietuviu poetas, dramaturgas.",
+                            gimimo_metai = new DateTime(1896, 2, 2, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            knygu_skaicius = 1,
+                            mirties_data = new DateTime(1947, 10, 16, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            pavarde = "Sruoga",
+                            tautybe = "Lietuvis",
+                            vardas = "Balys"
+                        },
+                        new
+                        {
+                            Id = new Guid("b0000000-0000-0000-0000-000000000004"),
+                            curiculum_vitae = "Anglu rasytojas ir zurnalistas.",
+                            gimimo_metai = new DateTime(1903, 6, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            knygu_skaicius = 2,
+                            mirties_data = new DateTime(1950, 1, 21, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            pavarde = "Orwell",
+                            tautybe = "Anglas",
+                            vardas = "George"
+                        });
                 });
 
             modelBuilder.Entity("lentynaBackEnd.Models.Entities.Balsas", b =>
@@ -127,9 +173,6 @@ namespace lentynaBackEnd.Migrations
 
                     b.Property<Guid?>("isrinkta_knyga_id")
                         .HasColumnType("char(36)");
-
-                    b.Property<string>("oro_prognoze")
-                        .HasColumnType("longtext");
 
                     b.Property<DateTime?>("susitikimo_data")
                         .HasColumnType("datetime(6)");
@@ -248,11 +291,18 @@ namespace lentynaBackEnd.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("varchar(20)");
 
+                    b.Property<Guid>("ZanrasId")
+                        .HasColumnType("char(36)");
+
                     b.Property<string>("aprasymas")
                         .HasColumnType("longtext");
 
                     b.Property<bool>("bestseleris")
                         .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("kalba")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<string>("knygos_pavadinimas")
                         .IsRequired()
@@ -265,10 +315,6 @@ namespace lentynaBackEnd.Migrations
                     b.Property<int?>("psl_skaicius")
                         .HasColumnType("int");
 
-                    b.Property<string>("raisos")
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
-
                     b.Property<string>("virselio_nuotrauka")
                         .HasMaxLength(500)
                         .HasColumnType("varchar(500)");
@@ -280,37 +326,89 @@ namespace lentynaBackEnd.Migrations
                     b.HasIndex("ISBN")
                         .IsUnique();
 
-                    b.ToTable("Knygos");
-                });
-
-            modelBuilder.Entity("lentynaBackEnd.Models.Entities.KnygaNuotaika", b =>
-                {
-                    b.Property<Guid>("KnygaId")
-                        .HasColumnType("char(36)");
-
-                    b.Property<Guid>("NuotaikaId")
-                        .HasColumnType("char(36)");
-
-                    b.HasKey("KnygaId", "NuotaikaId");
-
-                    b.HasIndex("NuotaikaId");
-
-                    b.ToTable("KnygaNuotaikos");
-                });
-
-            modelBuilder.Entity("lentynaBackEnd.Models.Entities.KnygaZanras", b =>
-                {
-                    b.Property<Guid>("KnygaId")
-                        .HasColumnType("char(36)");
-
-                    b.Property<Guid>("ZanrasId")
-                        .HasColumnType("char(36)");
-
-                    b.HasKey("KnygaId", "ZanrasId");
-
                     b.HasIndex("ZanrasId");
 
-                    b.ToTable("KnygaZanrai");
+                    b.ToTable("Knygos");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("c0000000-0000-0000-0000-000000000001"),
+                            AutoriusId = new Guid("b0000000-0000-0000-0000-000000000001"),
+                            ISBN = "9785417012345",
+                            ZanrasId = new Guid("cccccccc-cccc-cccc-cccc-cccccccccccc"),
+                            aprasymas = "Viena garsiausiu J. Biliuno noveliu.",
+                            bestseleris = false,
+                            kalba = "Lietuviu",
+                            knygos_pavadinimas = "Liudna pasaka",
+                            leidimo_metai = new DateTime(1907, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            psl_skaicius = 24
+                        },
+                        new
+                        {
+                            Id = new Guid("c0000000-0000-0000-0000-000000000002"),
+                            AutoriusId = new Guid("b0000000-0000-0000-0000-000000000001"),
+                            ISBN = "9785417012346",
+                            ZanrasId = new Guid("cccccccc-cccc-cccc-cccc-cccccccccccc"),
+                            aprasymas = "Novele apie kaltes jausma.",
+                            bestseleris = false,
+                            kalba = "Lietuviu",
+                            knygos_pavadinimas = "Kliudziau",
+                            leidimo_metai = new DateTime(1906, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            psl_skaicius = 18
+                        },
+                        new
+                        {
+                            Id = new Guid("c0000000-0000-0000-0000-000000000003"),
+                            AutoriusId = new Guid("b0000000-0000-0000-0000-000000000002"),
+                            ISBN = "9785417012347",
+                            ZanrasId = new Guid("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"),
+                            aprasymas = "Istorine drama apie Lietuvos kunigaiksti.",
+                            bestseleris = false,
+                            kalba = "Lietuviu",
+                            knygos_pavadinimas = "Skirgaila",
+                            leidimo_metai = new DateTime(1925, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            psl_skaicius = 180
+                        },
+                        new
+                        {
+                            Id = new Guid("c0000000-0000-0000-0000-000000000004"),
+                            AutoriusId = new Guid("b0000000-0000-0000-0000-000000000003"),
+                            ISBN = "9785417012349",
+                            ZanrasId = new Guid("ffffffff-ffff-ffff-ffff-ffffffffffff"),
+                            aprasymas = "Memuarai apie Stuthofo koncentracijos stovykla.",
+                            bestseleris = true,
+                            kalba = "Lietuviu",
+                            knygos_pavadinimas = "Dievu miskas",
+                            leidimo_metai = new DateTime(1957, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            psl_skaicius = 320
+                        },
+                        new
+                        {
+                            Id = new Guid("c0000000-0000-0000-0000-000000000005"),
+                            AutoriusId = new Guid("b0000000-0000-0000-0000-000000000004"),
+                            ISBN = "9780451524935",
+                            ZanrasId = new Guid("dddddddd-dddd-dddd-dddd-dddddddddddd"),
+                            aprasymas = "Distopinis romanas apie totalitarine visuomene.",
+                            bestseleris = true,
+                            kalba = "Anglu",
+                            knygos_pavadinimas = "1984",
+                            leidimo_metai = new DateTime(1949, 6, 8, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            psl_skaicius = 328
+                        },
+                        new
+                        {
+                            Id = new Guid("c0000000-0000-0000-0000-000000000006"),
+                            AutoriusId = new Guid("b0000000-0000-0000-0000-000000000004"),
+                            ISBN = "9780451526342",
+                            ZanrasId = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+                            aprasymas = "Alegorine pasaka apie gyvulius.",
+                            bestseleris = true,
+                            kalba = "Anglu",
+                            knygos_pavadinimas = "Gyvuliu ukis",
+                            leidimo_metai = new DateTime(1945, 8, 17, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            psl_skaicius = 112
+                        });
                 });
 
             modelBuilder.Entity("lentynaBackEnd.Models.Entities.Knygos_rekomendacija", b =>
@@ -422,6 +520,9 @@ namespace lentynaBackEnd.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
+                    b.Property<Guid>("ZanrasId")
+                        .HasColumnType("char(36)");
+
                     b.Property<string>("pavadinimas")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -429,23 +530,40 @@ namespace lentynaBackEnd.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ZanrasId");
+
                     b.ToTable("Nuotaikos");
 
                     b.HasData(
                         new
                         {
                             Id = new Guid("11111111-1111-1111-1111-111111111111"),
-                            pavadinimas = "Džiugi"
+                            ZanrasId = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+                            pavadinimas = "Dziugi"
                         },
                         new
                         {
                             Id = new Guid("22222222-2222-2222-2222-222222222222"),
-                            pavadinimas = "Liūdna"
+                            ZanrasId = new Guid("cccccccc-cccc-cccc-cccc-cccccccccccc"),
+                            pavadinimas = "Liudna"
                         },
                         new
                         {
                             Id = new Guid("33333333-3333-3333-3333-333333333333"),
+                            ZanrasId = new Guid("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"),
                             pavadinimas = "Neutrali"
+                        },
+                        new
+                        {
+                            Id = new Guid("44444444-4444-4444-4444-444444444444"),
+                            ZanrasId = new Guid("11111111-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+                            pavadinimas = "Itemptas"
+                        },
+                        new
+                        {
+                            Id = new Guid("55555555-5555-5555-5555-555555555555"),
+                            ZanrasId = new Guid("cccccccc-cccc-cccc-cccc-cccccccccccc"),
+                            pavadinimas = "Romantiskas"
                         });
                 });
 
@@ -523,7 +641,7 @@ namespace lentynaBackEnd.Migrations
                         new
                         {
                             Id = new Guid("dddddddd-dddd-dddd-dddd-dddddddddddd"),
-                            pavadinimas = "Mokslinė fantastika"
+                            pavadinimas = "Mokslune fantastika"
                         },
                         new
                         {
@@ -659,43 +777,13 @@ namespace lentynaBackEnd.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Autorius");
-                });
-
-            modelBuilder.Entity("lentynaBackEnd.Models.Entities.KnygaNuotaika", b =>
-                {
-                    b.HasOne("lentynaBackEnd.Models.Entities.Knyga", "Knyga")
-                        .WithMany("KnygaNuotaikos")
-                        .HasForeignKey("KnygaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("lentynaBackEnd.Models.Entities.Nuotaika", "Nuotaika")
-                        .WithMany("KnygaNuotaikos")
-                        .HasForeignKey("NuotaikaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Knyga");
-
-                    b.Navigation("Nuotaika");
-                });
-
-            modelBuilder.Entity("lentynaBackEnd.Models.Entities.KnygaZanras", b =>
-                {
-                    b.HasOne("lentynaBackEnd.Models.Entities.Knyga", "Knyga")
-                        .WithMany("KnygaZanrai")
-                        .HasForeignKey("KnygaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("lentynaBackEnd.Models.Entities.Zanras", "Zanras")
-                        .WithMany("KnygaZanrai")
+                        .WithMany("Knygos")
                         .HasForeignKey("ZanrasId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Knyga");
+                    b.Navigation("Autorius");
 
                     b.Navigation("Zanras");
                 });
@@ -736,6 +824,17 @@ namespace lentynaBackEnd.Migrations
                     b.Navigation("Tema");
                 });
 
+            modelBuilder.Entity("lentynaBackEnd.Models.Entities.Nuotaika", b =>
+                {
+                    b.HasOne("lentynaBackEnd.Models.Entities.Zanras", "Zanras")
+                        .WithMany("Nuotaikos")
+                        .HasForeignKey("ZanrasId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Zanras");
+                });
+
             modelBuilder.Entity("lentynaBackEnd.Models.Entities.Tema", b =>
                 {
                     b.HasOne("lentynaBackEnd.Models.Entities.Naudotojas", "Naudotojas")
@@ -769,10 +868,6 @@ namespace lentynaBackEnd.Migrations
 
                     b.Navigation("Irasai");
 
-                    b.Navigation("KnygaNuotaikos");
-
-                    b.Navigation("KnygaZanrai");
-
                     b.Navigation("Komentarai");
                 });
 
@@ -796,11 +891,6 @@ namespace lentynaBackEnd.Migrations
                     b.Navigation("Temos");
                 });
 
-            modelBuilder.Entity("lentynaBackEnd.Models.Entities.Nuotaika", b =>
-                {
-                    b.Navigation("KnygaNuotaikos");
-                });
-
             modelBuilder.Entity("lentynaBackEnd.Models.Entities.Tema", b =>
                 {
                     b.Navigation("Komentarai");
@@ -808,7 +898,9 @@ namespace lentynaBackEnd.Migrations
 
             modelBuilder.Entity("lentynaBackEnd.Models.Entities.Zanras", b =>
                 {
-                    b.Navigation("KnygaZanrai");
+                    b.Navigation("Knygos");
+
+                    b.Navigation("Nuotaikos");
                 });
 #pragma warning restore 612, 618
         }

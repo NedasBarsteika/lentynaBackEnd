@@ -11,15 +11,18 @@ namespace lentynaBackEnd.Services.Implementations
     {
         private readonly IBalsavimasRepository _balsavimasRepository;
         private readonly IKnygaRepository _knygaRepository;
+        private readonly IMeteoService _meteoService;
         private readonly IMapper _mapper;
 
         public BalsavimasService(
             IBalsavimasRepository balsavimasRepository,
             IKnygaRepository knygaRepository,
+            IMeteoService meteoService,
             IMapper mapper)
         {
             _balsavimasRepository = balsavimasRepository;
             _knygaRepository = knygaRepository;
+            _meteoService = meteoService;
             _mapper = mapper;
         }
 
@@ -145,11 +148,8 @@ namespace lentynaBackEnd.Services.Implementations
                 return (Result.Failure("Susitikimo data nenustatyta"), null);
             }
 
-            // Mock weather forecast for KTU
-            var weather = GenerateMockWeather(balsavimas.susitikimo_data.Value);
-
-            balsavimas.oro_prognoze = weather;
-            await _balsavimasRepository.UpdateAsync(balsavimas);
+            // Get real weather forecast from api.meteo.lt (not saved to database)
+            var weather = await _meteoService.GetOroPrognozeAsync(balsavimas.susitikimo_data.Value);
 
             return (Result.Success(), weather);
         }
@@ -187,26 +187,12 @@ namespace lentynaBackEnd.Services.Implementations
                 balsavimo_pabaiga = balsavimas.balsavimo_pabaiga,
                 uzbaigtas = balsavimas.uzbaigtas,
                 susitikimo_data = balsavimas.susitikimo_data,
-                oro_prognoze = balsavimas.oro_prognoze,
                 isrinkta_knyga = balsavimas.IsrinktaKnyga != null
                     ? _mapper.Map<DTOs.Knygos.KnygaListDto>(balsavimas.IsrinktaKnyga)
                     : null,
                 nominuotos_knygos = knygosBalsu.OrderByDescending(k => k.balsu_skaicius).ToList(),
                 viso_balsu = voteCounts.Values.Sum()
             };
-        }
-
-        private static string GenerateMockWeather(DateTime date)
-        {
-            var random = new Random(date.DayOfYear);
-            var temps = new[] { 15, 18, 20, 22, 25, 12, 10, 8 };
-            var conditions = new[] { "Saulėta", "Debesuota", "Lietus", "Nepastovūs orai", "Giedra" };
-
-            var temp = temps[random.Next(temps.Length)];
-            var condition = conditions[random.Next(conditions.Length)];
-
-            return $"KTU miestelis: {temp}°C, {condition}. " +
-                   (condition == "Lietus" ? "Rekomenduojame susitikti viduje." : "Galima susitikti lauke.");
         }
     }
 }

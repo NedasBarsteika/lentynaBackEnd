@@ -9,7 +9,6 @@ namespace lentynaBackEnd.DTOs.Balsavimai
         public DateTime balsavimo_pabaiga { get; set; }
         public bool uzbaigtas { get; set; }
         public DateTime? susitikimo_data { get; set; }
-        public string? oro_prognoze { get; set; }
         public KnygaListDto? isrinkta_knyga { get; set; }
         public List<KnygaBalsuDto> nominuotos_knygos { get; set; } = new();
         public int viso_balsu { get; set; }

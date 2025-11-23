@@ -11,5 +11,6 @@ namespace lentynaBackEnd.Services.Interfaces
         Task<(Result Result, KnygaDetailDto? Knyga)> CreateAsync(CreateKnygaDto dto);
         Task<(Result Result, KnygaDetailDto? Knyga)> UpdateAsync(Guid id, UpdateKnygaDto dto);
         Task<Result> DeleteAsync(Guid id);
+        Task<List<KnygaListDto>> IsplestinePaieskaAsync(IsplestinePaieskaDto dto);
     }
 }

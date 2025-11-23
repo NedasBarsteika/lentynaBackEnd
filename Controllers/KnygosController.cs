@@ -86,5 +86,19 @@ namespace lentynaBackEnd.Controllers
             var komentarai = await _komentarasService.GetByKnygaIdAsync(id);
             return Ok(komentarai);
         }
+
+        [HttpPost("isplestine-paieska")]
+        public async Task<IActionResult> IsplestinePaieska([FromBody] IsplestinePaieskaDto dto)
+        {
+            try
+            {
+                var result = await _knygaService.IsplestinePaieskaAsync(dto);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Klaida atliekant AI paiešką", error = ex.Message });
+            }
+        }
     }
 }

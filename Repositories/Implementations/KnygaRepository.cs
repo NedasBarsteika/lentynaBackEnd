@@ -24,10 +24,7 @@ namespace lentynaBackEnd.Repositories.Implementations
         {
             return await _context.Knygos
                 .Include(k => k.Autorius)
-                .Include(k => k.KnygaZanrai)
-                    .ThenInclude(kz => kz.Zanras)
-                .Include(k => k.KnygaNuotaikos)
-                    .ThenInclude(kn => kn.Nuotaika)
+                .Include(k => k.Zanras)
                 .Include(k => k.DI_Komentarai.OrderByDescending(d => d.sugeneravimo_data).Take(1))
                 .FirstOrDefaultAsync(k => k.Id == id);
         }
@@ -36,10 +33,7 @@ namespace lentynaBackEnd.Repositories.Implementations
         {
             var query = _context.Knygos
                 .Include(k => k.Autorius)
-                .Include(k => k.KnygaZanrai)
-                    .ThenInclude(kz => kz.Zanras)
-                .Include(k => k.KnygaNuotaikos)
-                    .ThenInclude(kn => kn.Nuotaika)
+                .Include(k => k.Zanras)
                 .AsQueryable();
 
             // Search filter
@@ -55,13 +49,7 @@ namespace lentynaBackEnd.Repositories.Implementations
             // Genre filter
             if (filter.zanrasId.HasValue)
             {
-                query = query.Where(k => k.KnygaZanrai.Any(kz => kz.ZanrasId == filter.zanrasId.Value));
-            }
-
-            // Mood filter
-            if (filter.nuotaikaId.HasValue)
-            {
-                query = query.Where(k => k.KnygaNuotaikos.Any(kn => kn.NuotaikaId == filter.nuotaikaId.Value));
+                query = query.Where(k => k.ZanrasId == filter.zanrasId.Value);
             }
 
             // Author filter
@@ -122,50 +110,11 @@ namespace lentynaBackEnd.Repositories.Implementations
             return true;
         }
 
-        public async Task AddZanraiAsync(Guid knygaId, List<Guid> zanraiIds)
-        {
-            var knygaZanrai = zanraiIds.Select(zId => new KnygaZanras
-            {
-                KnygaId = knygaId,
-                ZanrasId = zId
-            });
-            await _context.KnygaZanrai.AddRangeAsync(knygaZanrai);
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task AddNuotaikosAsync(Guid knygaId, List<Guid> nuotaikosIds)
-        {
-            var knygaNuotaikos = nuotaikosIds.Select(nId => new KnygaNuotaika
-            {
-                KnygaId = knygaId,
-                NuotaikaId = nId
-            });
-            await _context.KnygaNuotaikos.AddRangeAsync(knygaNuotaikos);
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task RemoveZanraiAsync(Guid knygaId)
-        {
-            var knygaZanrai = await _context.KnygaZanrai
-                .Where(kz => kz.KnygaId == knygaId)
-                .ToListAsync();
-            _context.KnygaZanrai.RemoveRange(knygaZanrai);
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task RemoveNuotaikosAsync(Guid knygaId)
-        {
-            var knygaNuotaikos = await _context.KnygaNuotaikos
-                .Where(kn => kn.KnygaId == knygaId)
-                .ToListAsync();
-            _context.KnygaNuotaikos.RemoveRange(knygaNuotaikos);
-            await _context.SaveChangesAsync();
-        }
-
         public async Task<IEnumerable<Knyga>> GetPopularBooksAsync(int count)
         {
             return await _context.Knygos
                 .Include(k => k.Autorius)
+                .Include(k => k.Zanras)
                 .Include(k => k.Komentarai)
                 .OrderByDescending(k => k.Komentarai.Count)
                 .ThenByDescending(k => k.Komentarai.Average(ko => (double?)ko.vertinimas) ?? 0)
@@ -187,6 +136,44 @@ namespace lentynaBackEnd.Repositories.Implementations
         {
             return await _context.Komentarai
                 .CountAsync(k => k.KnygaId == knygaId);
+        }
+
+        public async Task<IEnumerable<Knyga>> GetBooksForAdvancedSearchAsync(List<Guid>? zanruIds, List<Guid>? nuotaikuIds)
+        {
+            var query = _context.Knygos
+                .Include(k => k.Autorius)
+                .Include(k => k.Zanras)
+                .AsQueryable();
+
+            // Filter by genres if provided
+            if (zanruIds != null && zanruIds.Count > 0)
+            {
+                query = query.Where(k => zanruIds.Contains(k.ZanrasId));
+            }
+
+            // Filter by moods through Zanras relationship
+            if (nuotaikuIds != null && nuotaikuIds.Count > 0)
+            {
+                // Get all ZanrasIds that have the specified Nuotaikos
+                var zanruIdsFromNuotaikos = await _context.Nuotaikos
+                    .Where(n => nuotaikuIds.Contains(n.Id))
+                    .Select(n => n.ZanrasId)
+                    .Distinct()
+                    .ToListAsync();
+
+                // If we also have genre filter, intersect the results
+                if (zanruIds != null && zanruIds.Count > 0)
+                {
+                    var intersectedZanruIds = zanruIds.Intersect(zanruIdsFromNuotaikos).ToList();
+                    query = query.Where(k => intersectedZanruIds.Contains(k.ZanrasId));
+                }
+                else
+                {
+                    query = query.Where(k => zanruIdsFromNuotaikos.Contains(k.ZanrasId));
+                }
+            }
+
+            return await query.ToListAsync();
         }
     }
 }

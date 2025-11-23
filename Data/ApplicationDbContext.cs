@@ -16,8 +16,6 @@ namespace lentynaBackEnd.Data
         public DbSet<Knyga> Knygos { get; set; }
         public DbSet<Zanras> Zanrai { get; set; }
         public DbSet<Nuotaika> Nuotaikos { get; set; }
-        public DbSet<KnygaZanras> KnygaZanrai { get; set; }
-        public DbSet<KnygaNuotaika> KnygaNuotaikos { get; set; }
         public DbSet<Komentaras> Komentarai { get; set; }
         public DbSet<Dirbtinio_intelekto_komentaras> DI_Komentarai { get; set; }
         public DbSet<Citata> Citatos { get; set; }
@@ -58,38 +56,6 @@ namespace lentynaBackEnd.Data
                 .HasIndex(k => k.ISBN)
                 .IsUnique();
 
-            // KnygaZanras - Composite primary key
-            modelBuilder.Entity<KnygaZanras>()
-                .HasKey(kz => new { kz.KnygaId, kz.ZanrasId });
-
-            modelBuilder.Entity<KnygaZanras>()
-                .HasOne(kz => kz.Knyga)
-                .WithMany(k => k.KnygaZanrai)
-                .HasForeignKey(kz => kz.KnygaId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<KnygaZanras>()
-                .HasOne(kz => kz.Zanras)
-                .WithMany(z => z.KnygaZanrai)
-                .HasForeignKey(kz => kz.ZanrasId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            // KnygaNuotaika - Composite primary key
-            modelBuilder.Entity<KnygaNuotaika>()
-                .HasKey(kn => new { kn.KnygaId, kn.NuotaikaId });
-
-            modelBuilder.Entity<KnygaNuotaika>()
-                .HasOne(kn => kn.Knyga)
-                .WithMany(k => k.KnygaNuotaikos)
-                .HasForeignKey(kn => kn.KnygaId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<KnygaNuotaika>()
-                .HasOne(kn => kn.Nuotaika)
-                .WithMany(n => n.KnygaNuotaikos)
-                .HasForeignKey(kn => kn.NuotaikaId)
-                .OnDelete(DeleteBehavior.Cascade);
-
             // Autoriaus_sekimas - Composite primary key
             modelBuilder.Entity<Autoriaus_sekimas>()
                 .HasKey(a => new { a.NaudotojasId, a.AutoriusId });
@@ -112,6 +78,20 @@ namespace lentynaBackEnd.Data
                 .WithMany(a => a.Knygos)
                 .HasForeignKey(k => k.AutoriusId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Zanras -> Knyga (1 to many)
+            modelBuilder.Entity<Knyga>()
+                .HasOne(k => k.Zanras)
+                .WithMany(z => z.Knygos)
+                .HasForeignKey(k => k.ZanrasId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Zanras -> Nuotaika (1 to many)
+            modelBuilder.Entity<Nuotaika>()
+                .HasOne(n => n.Zanras)
+                .WithMany(z => z.Nuotaikos)
+                .HasForeignKey(n => n.ZanrasId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Autorius -> Citata (1 to many)
             modelBuilder.Entity<Citata>()
@@ -211,23 +191,34 @@ namespace lentynaBackEnd.Data
                 .HasForeignKey(b => b.KnygaId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            // Seed data for Nuotaikos
-            modelBuilder.Entity<Nuotaika>().HasData(
-                new Nuotaika { Id = Guid.Parse("11111111-1111-1111-1111-111111111111"), pavadinimas = "Džiugi" },
-                new Nuotaika { Id = Guid.Parse("22222222-2222-2222-2222-222222222222"), pavadinimas = "Liūdna" },
-                new Nuotaika { Id = Guid.Parse("33333333-3333-3333-3333-333333333333"), pavadinimas = "Neutrali" }
+            // Seed data for Zanrai
+            var zanrasFantastika = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+            var zanrasDetektyvai = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
+            var zanrasRomanai = Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc");
+            var zanrasMoksline = Guid.Parse("dddddddd-dddd-dddd-dddd-dddddddddddd");
+            var zanrasIstoriniai = Guid.Parse("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee");
+            var zanrasBiografijos = Guid.Parse("ffffffff-ffff-ffff-ffff-ffffffffffff");
+            var zanrasTrileriai = Guid.Parse("11111111-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+            var zanrasPoezija = Guid.Parse("22222222-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
+
+            modelBuilder.Entity<Zanras>().HasData(
+                new Zanras { Id = zanrasFantastika, pavadinimas = "Fantastika" },
+                new Zanras { Id = zanrasDetektyvai, pavadinimas = "Detektyvai" },
+                new Zanras { Id = zanrasRomanai, pavadinimas = "Romanai" },
+                new Zanras { Id = zanrasMoksline, pavadinimas = "Mokslune fantastika" },
+                new Zanras { Id = zanrasIstoriniai, pavadinimas = "Istoriniai" },
+                new Zanras { Id = zanrasBiografijos, pavadinimas = "Biografijos" },
+                new Zanras { Id = zanrasTrileriai, pavadinimas = "Trileriai" },
+                new Zanras { Id = zanrasPoezija, pavadinimas = "Poezija" }
             );
 
-            // Seed data for Zanrai
-            modelBuilder.Entity<Zanras>().HasData(
-                new Zanras { Id = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), pavadinimas = "Fantastika" },
-                new Zanras { Id = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"), pavadinimas = "Detektyvai" },
-                new Zanras { Id = Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc"), pavadinimas = "Romanai" },
-                new Zanras { Id = Guid.Parse("dddddddd-dddd-dddd-dddd-dddddddddddd"), pavadinimas = "Mokslinė fantastika" },
-                new Zanras { Id = Guid.Parse("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"), pavadinimas = "Istoriniai" },
-                new Zanras { Id = Guid.Parse("ffffffff-ffff-ffff-ffff-ffffffffffff"), pavadinimas = "Biografijos" },
-                new Zanras { Id = Guid.Parse("11111111-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), pavadinimas = "Trileriai" },
-                new Zanras { Id = Guid.Parse("22222222-bbbb-bbbb-bbbb-bbbbbbbbbbbb"), pavadinimas = "Poezija" }
+            // Seed data for Nuotaikos (linked to Zanrai)
+            modelBuilder.Entity<Nuotaika>().HasData(
+                new Nuotaika { Id = Guid.Parse("11111111-1111-1111-1111-111111111111"), pavadinimas = "Dziugi", ZanrasId = zanrasFantastika },
+                new Nuotaika { Id = Guid.Parse("22222222-2222-2222-2222-222222222222"), pavadinimas = "Liudna", ZanrasId = zanrasRomanai },
+                new Nuotaika { Id = Guid.Parse("33333333-3333-3333-3333-333333333333"), pavadinimas = "Neutrali", ZanrasId = zanrasIstoriniai },
+                new Nuotaika { Id = Guid.Parse("44444444-4444-4444-4444-444444444444"), pavadinimas = "Itemptas", ZanrasId = zanrasTrileriai },
+                new Nuotaika { Id = Guid.Parse("55555555-5555-5555-5555-555555555555"), pavadinimas = "Romantiskas", ZanrasId = zanrasRomanai }
             );
 
             // Seed data for Autoriai
@@ -236,20 +227,22 @@ namespace lentynaBackEnd.Data
                 {
                     Id = Guid.Parse("b0000000-0000-0000-0000-000000000001"),
                     vardas = "Jonas",
-                    pavarde = "Biliūnas",
+                    pavarde = "Biliunas",
                     gimimo_metai = new DateTime(1879, 4, 11),
                     mirties_data = new DateTime(1907, 12, 8),
-                    curiculum_vitae = "Lietuvių rašytojas, poetas, publicistas. Vienas žymiausių lietuvių novelistų.",
+                    curiculum_vitae = "Lietuviu rasytojas, poetas, publicistas.",
+                    tautybe = "Lietuvis",
                     knygu_skaicius = 2
                 },
                 new Autorius
                 {
                     Id = Guid.Parse("b0000000-0000-0000-0000-000000000002"),
                     vardas = "Vincas",
-                    pavarde = "Krėvė-Mickevičius",
+                    pavarde = "Kreve-Mickevicius",
                     gimimo_metai = new DateTime(1882, 10, 19),
                     mirties_data = new DateTime(1954, 7, 7),
-                    curiculum_vitae = "Lietuvių rašytojas, dramaturgas, profesorius. Parašė daug dramų, apsakymų ir romanų.",
+                    curiculum_vitae = "Lietuviu rasytojas, dramaturgas.",
+                    tautybe = "Lietuvis",
                     knygu_skaicius = 2
                 },
                 new Autorius
@@ -259,175 +252,100 @@ namespace lentynaBackEnd.Data
                     pavarde = "Sruoga",
                     gimimo_metai = new DateTime(1896, 2, 2),
                     mirties_data = new DateTime(1947, 10, 16),
-                    curiculum_vitae = "Lietuvių poetas, dramaturgas, literatūros kritikas ir teatro teoretikas.",
+                    curiculum_vitae = "Lietuviu poetas, dramaturgas.",
+                    tautybe = "Lietuvis",
                     knygu_skaicius = 1
                 },
                 new Autorius
                 {
                     Id = Guid.Parse("b0000000-0000-0000-0000-000000000004"),
-                    vardas = "Kristina",
-                    pavarde = "Sabaliauskaitė",
-                    gimimo_metai = new DateTime(1974, 9, 2),
-                    curiculum_vitae = "Šiuolaikinė lietuvių rašytoja, meno istorikė. Garsėja istorinių romanų serija „Silva Rerum",
-                    knygu_skaicius = 2
-                },
-                new Autorius
-                {
-                    Id = Guid.Parse("b0000000-0000-0000-0000-000000000005"),
                     vardas = "George",
                     pavarde = "Orwell",
                     gimimo_metai = new DateTime(1903, 6, 25),
                     mirties_data = new DateTime(1950, 1, 21),
-                    curiculum_vitae = "Anglų rašytojas ir žurnalistas, garsėjantis distopiniais romanais ir socialine kritika.",
+                    curiculum_vitae = "Anglu rasytojas ir zurnalistas.",
+                    tautybe = "Anglas",
                     knygu_skaicius = 2
                 }
             );
 
-            // Seed data for Knygos
+            // Seed data for Knygos (with single ZanrasId)
             modelBuilder.Entity<Knyga>().HasData(
                 new Knyga
                 {
                     Id = Guid.Parse("c0000000-0000-0000-0000-000000000001"),
-                    knygos_pavadinimas = "Liūdna pasaka",
+                    knygos_pavadinimas = "Liudna pasaka",
                     leidimo_metai = new DateTime(1907, 1, 1),
-                    aprasymas = "Viena garsiausių J. Biliūno novelių apie vargšę mergaitę ir jos sunkų gyvenimą.",
+                    aprasymas = "Viena garsiausiu J. Biliuno noveliu.",
                     psl_skaicius = 24,
                     ISBN = "9785417012345",
-                    AutoriusId = Guid.Parse("b0000000-0000-0000-0000-000000000001")
+                    kalba = "Lietuviu",
+                    AutoriusId = Guid.Parse("b0000000-0000-0000-0000-000000000001"),
+                    ZanrasId = zanrasRomanai
                 },
                 new Knyga
                 {
                     Id = Guid.Parse("c0000000-0000-0000-0000-000000000002"),
-                    knygos_pavadinimas = "Kliudžiau",
+                    knygos_pavadinimas = "Kliudziau",
                     leidimo_metai = new DateTime(1906, 1, 1),
-                    aprasymas = "Novelė apie kaltės jausmą ir žmogaus sąžinę.",
+                    aprasymas = "Novele apie kaltes jausma.",
                     psl_skaicius = 18,
                     ISBN = "9785417012346",
-                    AutoriusId = Guid.Parse("b0000000-0000-0000-0000-000000000001")
+                    kalba = "Lietuviu",
+                    AutoriusId = Guid.Parse("b0000000-0000-0000-0000-000000000001"),
+                    ZanrasId = zanrasRomanai
                 },
                 new Knyga
                 {
                     Id = Guid.Parse("c0000000-0000-0000-0000-000000000003"),
                     knygos_pavadinimas = "Skirgaila",
                     leidimo_metai = new DateTime(1925, 1, 1),
-                    aprasymas = "Istorinė drama apie Lietuvos kunigaikštį Skirgailą ir jo vidines kovas.",
+                    aprasymas = "Istorine drama apie Lietuvos kunigaiksti.",
                     psl_skaicius = 180,
                     ISBN = "9785417012347",
-                    AutoriusId = Guid.Parse("b0000000-0000-0000-0000-000000000002")
+                    kalba = "Lietuviu",
+                    AutoriusId = Guid.Parse("b0000000-0000-0000-0000-000000000002"),
+                    ZanrasId = zanrasIstoriniai
                 },
                 new Knyga
                 {
                     Id = Guid.Parse("c0000000-0000-0000-0000-000000000004"),
-                    knygos_pavadinimas = "Dainavos šalies senų žmonių padavimai",
-                    leidimo_metai = new DateTime(1912, 1, 1),
-                    aprasymas = "Padavimų rinkinys iš Dzūkijos krašto.",
-                    psl_skaicius = 256,
-                    ISBN = "9785417012348",
-                    AutoriusId = Guid.Parse("b0000000-0000-0000-0000-000000000002")
+                    knygos_pavadinimas = "Dievu miskas",
+                    leidimo_metai = new DateTime(1957, 1, 1),
+                    aprasymas = "Memuarai apie Stuthofo koncentracijos stovykla.",
+                    psl_skaicius = 320,
+                    ISBN = "9785417012349",
+                    bestseleris = true,
+                    kalba = "Lietuviu",
+                    AutoriusId = Guid.Parse("b0000000-0000-0000-0000-000000000003"),
+                    ZanrasId = zanrasBiografijos
                 },
                 new Knyga
                 {
                     Id = Guid.Parse("c0000000-0000-0000-0000-000000000005"),
-                    knygos_pavadinimas = "Dievų miškas",
-                    leidimo_metai = new DateTime(1957, 1, 1),
-                    aprasymas = "Memuarai apie autoriaus patirtį Štuthofo koncentracijos stovykloje.",
-                    psl_skaicius = 320,
-                    ISBN = "9785417012349",
+                    knygos_pavadinimas = "1984",
+                    leidimo_metai = new DateTime(1949, 6, 8),
+                    aprasymas = "Distopinis romanas apie totalitarine visuomene.",
+                    psl_skaicius = 328,
+                    ISBN = "9780451524935",
                     bestseleris = true,
-                    AutoriusId = Guid.Parse("b0000000-0000-0000-0000-000000000003")
+                    kalba = "Anglu",
+                    AutoriusId = Guid.Parse("b0000000-0000-0000-0000-000000000004"),
+                    ZanrasId = zanrasMoksline
                 },
                 new Knyga
                 {
                     Id = Guid.Parse("c0000000-0000-0000-0000-000000000006"),
-                    knygos_pavadinimas = "Silva Rerum",
-                    leidimo_metai = new DateTime(2008, 1, 1),
-                    aprasymas = "Pirmoji istorinių romanų serijos knyga apie Narvoišių giminę XVII amžiaus Lietuvoje.",
-                    psl_skaicius = 456,
-                    ISBN = "9789955234562",
-                    bestseleris = true,
-                    AutoriusId = Guid.Parse("b0000000-0000-0000-0000-000000000004")
-                },
-                new Knyga
-                {
-                    Id = Guid.Parse("c0000000-0000-0000-0000-000000000007"),
-                    knygos_pavadinimas = "Silva Rerum II",
-                    leidimo_metai = new DateTime(2011, 1, 1),
-                    aprasymas = "Antroji serijos knyga, tęsianti Narvoišių giminės istoriją.",
-                    psl_skaicius = 512,
-                    ISBN = "9789955234563",
-                    bestseleris = true,
-                    AutoriusId = Guid.Parse("b0000000-0000-0000-0000-000000000004")
-                },
-                new Knyga
-                {
-                    Id = Guid.Parse("c0000000-0000-0000-0000-000000000008"),
-                    knygos_pavadinimas = "1984",
-                    leidimo_metai = new DateTime(1949, 6, 8),
-                    aprasymas = "Distopinis romanas apie totalitarinę visuomenę, kurioje valdžia kontroliuoja kiekvieną gyvenimo aspektą.",
-                    psl_skaicius = 328,
-                    ISBN = "9780451524935",
-                    bestseleris = true,
-                    AutoriusId = Guid.Parse("b0000000-0000-0000-0000-000000000005")
-                },
-                new Knyga
-                {
-                    Id = Guid.Parse("c0000000-0000-0000-0000-000000000009"),
-                    knygos_pavadinimas = "Gyvulių ūkis",
+                    knygos_pavadinimas = "Gyvuliu ukis",
                     leidimo_metai = new DateTime(1945, 8, 17),
-                    aprasymas = "Alegorinė pasaka apie gyvulius, kurie sukyla prieš savo šeimininkus ir bando sukurti lygybės visuomenę.",
+                    aprasymas = "Alegorine pasaka apie gyvulius.",
                     psl_skaicius = 112,
                     ISBN = "9780451526342",
                     bestseleris = true,
-                    AutoriusId = Guid.Parse("b0000000-0000-0000-0000-000000000005")
+                    kalba = "Anglu",
+                    AutoriusId = Guid.Parse("b0000000-0000-0000-0000-000000000004"),
+                    ZanrasId = zanrasFantastika
                 }
-            );
-
-            // Seed data for KnygaZanras (Book-Genre relationships)
-            modelBuilder.Entity<KnygaZanras>().HasData(
-                // Liūdna pasaka - Romanai
-                new KnygaZanras { KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000001"), ZanrasId = Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc") },
-                // Kliudžiau - Romanai
-                new KnygaZanras { KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000002"), ZanrasId = Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc") },
-                // Skirgaila - Istoriniai
-                new KnygaZanras { KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000003"), ZanrasId = Guid.Parse("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee") },
-                // Dainavos padavimai - Fantastika
-                new KnygaZanras { KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000004"), ZanrasId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa") },
-                // Dievų miškas - Biografijos
-                new KnygaZanras { KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000005"), ZanrasId = Guid.Parse("ffffffff-ffff-ffff-ffff-ffffffffffff") },
-                new KnygaZanras { KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000005"), ZanrasId = Guid.Parse("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee") },
-                // Silva Rerum - Istoriniai, Romanai
-                new KnygaZanras { KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000006"), ZanrasId = Guid.Parse("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee") },
-                new KnygaZanras { KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000006"), ZanrasId = Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc") },
-                // Silva Rerum II - Istoriniai, Romanai
-                new KnygaZanras { KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000007"), ZanrasId = Guid.Parse("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee") },
-                new KnygaZanras { KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000007"), ZanrasId = Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc") },
-                // 1984 - Mokslinė fantastika, Trileriai
-                new KnygaZanras { KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000008"), ZanrasId = Guid.Parse("dddddddd-dddd-dddd-dddd-dddddddddddd") },
-                new KnygaZanras { KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000008"), ZanrasId = Guid.Parse("11111111-aaaa-aaaa-aaaa-aaaaaaaaaaaa") },
-                // Gyvulių ūkis - Fantastika
-                new KnygaZanras { KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000009"), ZanrasId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa") }
-            );
-
-            // Seed data for KnygaNuotaika (Book-Mood relationships)
-            modelBuilder.Entity<KnygaNuotaika>().HasData(
-                // Liūdna pasaka - Liūdna
-                new KnygaNuotaika { KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000001"), NuotaikaId = Guid.Parse("22222222-2222-2222-2222-222222222222") },
-                // Kliudžiau - Liūdna
-                new KnygaNuotaika { KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000002"), NuotaikaId = Guid.Parse("22222222-2222-2222-2222-222222222222") },
-                // Skirgaila - Neutrali
-                new KnygaNuotaika { KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000003"), NuotaikaId = Guid.Parse("33333333-3333-3333-3333-333333333333") },
-                // Dainavos padavimai - Džiugi
-                new KnygaNuotaika { KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000004"), NuotaikaId = Guid.Parse("11111111-1111-1111-1111-111111111111") },
-                // Dievų miškas - Liūdna
-                new KnygaNuotaika { KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000005"), NuotaikaId = Guid.Parse("22222222-2222-2222-2222-222222222222") },
-                // Silva Rerum - Neutrali
-                new KnygaNuotaika { KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000006"), NuotaikaId = Guid.Parse("33333333-3333-3333-3333-333333333333") },
-                // Silva Rerum II - Neutrali
-                new KnygaNuotaika { KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000007"), NuotaikaId = Guid.Parse("33333333-3333-3333-3333-333333333333") },
-                // 1984 - Liūdna
-                new KnygaNuotaika { KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000008"), NuotaikaId = Guid.Parse("22222222-2222-2222-2222-222222222222") },
-                // Gyvulių ūkis - Neutrali
-                new KnygaNuotaika { KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000009"), NuotaikaId = Guid.Parse("33333333-3333-3333-3333-333333333333") }
             );
         }
     }

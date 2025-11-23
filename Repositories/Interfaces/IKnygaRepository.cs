@@ -11,12 +11,9 @@ namespace lentynaBackEnd.Repositories.Interfaces
         Task<Knyga> AddAsync(Knyga knyga);
         Task UpdateAsync(Knyga knyga);
         Task<bool> DeleteAsync(Guid id);
-        Task AddZanraiAsync(Guid knygaId, List<Guid> zanraiIds);
-        Task AddNuotaikosAsync(Guid knygaId, List<Guid> nuotaikosIds);
-        Task RemoveZanraiAsync(Guid knygaId);
-        Task RemoveNuotaikosAsync(Guid knygaId);
         Task<IEnumerable<Knyga>> GetPopularBooksAsync(int count);
         Task<double> GetAverageRatingAsync(Guid knygaId);
         Task<int> GetReviewCountAsync(Guid knygaId);
+        Task<IEnumerable<Knyga>> GetBooksForAdvancedSearchAsync(List<Guid>? zanruIds, List<Guid>? nuotaikuIds);
     }
 }

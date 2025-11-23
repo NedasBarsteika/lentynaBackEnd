@@ -77,7 +77,7 @@ namespace lentynaBackEnd.Services.Implementations
             if (dto.mirties_data.HasValue) autorius.mirties_data = dto.mirties_data;
             if (dto.curiculum_vitae != null) autorius.curiculum_vitae = dto.curiculum_vitae;
             if (dto.nuotrauka != null) autorius.nuotrauka = dto.nuotrauka;
-            if (dto.laidybe != null) autorius.laidybe = dto.laidybe;
+            if (dto.tautybe != null) autorius.tautybe = dto.tautybe;
 
             await _autoriusRepository.UpdateAsync(autorius);
 

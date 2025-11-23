@@ -9,14 +9,14 @@ namespace lentynaBackEnd.DTOs.Knygos
         public int? psl_skaicius { get; set; }
         public string? ISBN { get; set; }
         public string? virselio_nuotrauka { get; set; }
-        public string? raisos { get; set; }
+        public string? kalba { get; set; }
         public bool bestseleris { get; set; }
         public Guid AutoriusId { get; set; }
         public AutoriusSummaryDto Autorius { get; set; } = null!;
+        public Guid ZanrasId { get; set; }
+        public ZanrasDto Zanras { get; set; } = null!;
         public double vidutinis_vertinimas { get; set; }
         public int komentaru_skaicius { get; set; }
-        public List<ZanrasDto> zanrai { get; set; } = new();
-        public List<NuotaikaDto> nuotaikos { get; set; } = new();
         public DIKomentarasDto? di_komentaras { get; set; }
     }
 
@@ -38,6 +38,7 @@ namespace lentynaBackEnd.DTOs.Knygos
     {
         public Guid Id { get; set; }
         public string pavadinimas { get; set; } = string.Empty;
+        public Guid ZanrasId { get; set; }
     }
 
     public class DIKomentarasDto

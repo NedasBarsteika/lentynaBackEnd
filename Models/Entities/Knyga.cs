@@ -24,20 +24,23 @@ namespace lentynaBackEnd.Models.Entities
         [MaxLength(500)]
         public string? virselio_nuotrauka { get; set; }
 
-        [MaxLength(100)]
-        public string? raisos { get; set; }
+        [MaxLength(50)]
+        public string? kalba { get; set; }
 
         public bool bestseleris { get; set; } = false;
 
-        // Foreign key
+        // Foreign keys
         public Guid AutoriusId { get; set; }
 
         [ForeignKey("AutoriusId")]
         public Autorius? Autorius { get; set; }
 
+        public Guid ZanrasId { get; set; }
+
+        [ForeignKey("ZanrasId")]
+        public Zanras? Zanras { get; set; }
+
         // Navigation properties
-        public List<KnygaZanras> KnygaZanrai { get; set; } = new();
-        public List<KnygaNuotaika> KnygaNuotaikos { get; set; } = new();
         public List<Komentaras> Komentarai { get; set; } = new();
         public List<Dirbtinio_intelekto_komentaras> DI_Komentarai { get; set; } = new();
         public List<Irasas> Irasai { get; set; } = new();

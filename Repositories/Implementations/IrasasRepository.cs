@@ -21,8 +21,7 @@ namespace lentynaBackEnd.Repositories.Implementations
                 .Include(i => i.Knyga)
                     .ThenInclude(k => k!.Autorius)
                 .Include(i => i.Knyga)
-                    .ThenInclude(k => k!.KnygaZanrai)
-                    .ThenInclude(kz => kz.Zanras)
+                    .ThenInclude(k => k!.Zanras)
                 .FirstOrDefaultAsync(i => i.Id == id);
         }
 
@@ -33,8 +32,7 @@ namespace lentynaBackEnd.Repositories.Implementations
                 .Include(i => i.Knyga)
                     .ThenInclude(k => k!.Autorius)
                 .Include(i => i.Knyga)
-                    .ThenInclude(k => k!.KnygaZanrai)
-                    .ThenInclude(kz => kz.Zanras)
+                    .ThenInclude(k => k!.Zanras)
                 .OrderByDescending(i => i.sukurimo_data)
                 .ToListAsync();
         }
@@ -46,8 +44,7 @@ namespace lentynaBackEnd.Repositories.Implementations
                 .Include(i => i.Knyga)
                     .ThenInclude(k => k!.Autorius)
                 .Include(i => i.Knyga)
-                    .ThenInclude(k => k!.KnygaZanrai)
-                    .ThenInclude(kz => kz.Zanras)
+                    .ThenInclude(k => k!.Zanras)
                 .OrderByDescending(i => i.sukurimo_data)
                 .ToListAsync();
         }

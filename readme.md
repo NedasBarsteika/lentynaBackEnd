@@ -112,12 +112,25 @@ Sukurti `appsettings.json` failą su MySQL prisijungimo duomenimis:
 }
 ```
 
-3. **Pritaikyti migracijas**
+3. **Sukonfigūruoti aplinkos kintamuosius**
+
+Sukurti `.env` failą (arba nukopijuoti iš `.env.example`):
+```
+OPENAI_API_KEY=your-openai-api-key-here
+OPENAI_MODEL=gpt-4o-mini
+
+# Brevo Email Service (neprivaloma)
+BREVO_API_KEY=your-brevo-api-key-here
+BREVO_SENDER_EMAIL=noreply@lentyna.lt
+BREVO_SENDER_NAME=Lentyna
+```
+
+4. **Pritaikyti migracijas**
 ```bash
 dotnet ef database update
 ```
 
-4. **Paleisti projektą**
+5. **Paleisti projektą**
 ```bash
 dotnet run
 ```
@@ -162,232 +175,423 @@ Sąrašų endpoint'ai grąžina puslapiuotus rezultatus:
 
 ### Autentifikacija (`/api/auth`)
 
+| Metodas | Endpoint | JWT | Rolės | Aprašymas |
+|---------|----------|-----|-------|-----------|
+| POST | `/registruotis` | ❌ | - | Registracija |
+| POST | `/prisijungti` | ❌ | - | Prisijungimas |
+| GET | `/profilis` | ✅ | - | Gauti profilį |
+| PUT | `/profilis` | ✅ | - | Atnaujinti profilį |
+| DELETE | `/profilis` | ✅ | - | Ištrinti paskyrą |
+| PUT | `/naudotojai/{id}/role` | ✅ | admin | Keisti rolę |
+
 **POST `/registruotis`** - Registracija
 ```json
-// Request
-{ "slapyvardis": "jonas", "el_pastas": "jonas@mail.com", "slaptazodis": "Password123!" }
+// Request body
+{
+  "slapyvardis": "jonas",           // privalomas, max 100 simbolių
+  "el_pastas": "jonas@mail.com",    // privalomas, validus email
+  "slaptazodis": "Password123!"     // privalomas, min 6 simboliai
+}
+
 // Response
-{ "token": "jwt...", "naudotojas": { "Id", "slapyvardis", "el_pastas", "role", "sukurimo_data", "profilio_nuotrauka" } }
+{
+  "token": "jwt...",
+  "naudotojas": {
+    "Id": "guid",
+    "slapyvardis": "jonas",
+    "el_pastas": "jonas@mail.com",
+    "role": "naudotojas",
+    "sukurimo_data": "2025-01-15T10:00:00Z",
+    "profilio_nuotrauka": null
+  }
+}
 ```
 
 **POST `/prisijungti`** - Prisijungimas
 ```json
-// Request
-{ "el_pastas": "jonas@mail.com", "slaptazodis": "Password123!" }
-// Response
-{ "token": "jwt...", "naudotojas": { "Id", "slapyvardis", "el_pastas", "role", "sukurimo_data", "profilio_nuotrauka" } }
+// Request body
+{
+  "el_pastas": "jonas@mail.com",    // privalomas
+  "slaptazodis": "Password123!"     // privalomas
+}
+
+// Response - tas pats kaip registracijoje
 ```
 
-**GET `/profilis`** - Gauti profilį (reikia JWT)
+**PUT `/profilis`** - Atnaujinti profilį
+```json
+// Request body
+{
+  "slapyvardis": "naujas_vardas",        // neprivalomas, max 100 simbolių
+  "profilio_nuotrauka": "https://..."    // neprivalomas, max 500 simbolių
+}
+```
 
-**PUT `/profilis`** - Atnaujinti profilį (reikia JWT)
-
-**DELETE `/profilis`** - Ištrinti paskyrą (reikia JWT)
-
-**PUT `/naudotojai/{id}/role`** - Keisti rolę (tik Admin)
+**PUT `/naudotojai/{id}/role`** - Keisti rolę
+```json
+// Request body
+{
+  "role": "redaktorius"   // privalomas, galimos reikšmės: "naudotojas", "redaktorius", "moderatorius", "admin"
+}
+```
 
 ---
 
 ### Knygos (`/api/knygos`)
 
-**GET `/`** - Knygų sąrašas (su pagination)
+| Metodas | Endpoint | JWT | Rolės | Aprašymas |
+|---------|----------|-----|-------|-----------|
+| GET | `/` | ❌ | - | Knygų sąrašas |
+| GET | `/{id}` | ❌ | - | Knygos detalės |
+| GET | `/{id}/komentarai` | ❌ | - | Knygos komentarai |
+| POST | `/` | ✅ | redaktorius, admin | Sukurti knygą |
+| PUT | `/{id}` | ✅ | redaktorius, admin | Atnaujinti knygą |
+| DELETE | `/{id}` | ✅ | redaktorius, admin | Ištrinti knygą |
+| POST | `/isplestine-paieska` | ❌ | - | AI paieška |
+
+**GET `/`** - Knygų sąrašas
 
 Query parametrai:
 - `page`, `pageSize` - puslapiavimas
 - `paieska` - paieška pagal pavadinimą
 - `zanrasId` - filtras pagal žanrą
-- `nuotaikaId` - filtras pagal nuotaiką
 - `autoriusId` - filtras pagal autorių
 - `bestseleris` - tik bestseleriui (true/false)
-- `sortBy` - rikiavimas (pavadinimas, leidimo_metai, vertinimas)
+- `sortBy` - rikiavimas (pavadinimas, leidimo_metai)
 - `descending` - mažėjančia tvarka (true/false)
 
+**POST `/`** - Sukurti knygą
 ```json
-// Response item
+// Request body
 {
-  "Id", "knygos_pavadinimas", "leidimo_metai", "virselio_nuotrauka",
-  "bestseleris", "autorius_vardas", "vidutinis_vertinimas",
-  "komentaru_skaicius", "zanrai": ["..."], "nuotaikos": ["..."]
+  "knygos_pavadinimas": "Knyga",    // privalomas, max 255 simboliai
+  "leidimo_metai": "2025-01-01",    // neprivalomas, DateTime
+  "aprasymas": "Aprašymas...",      // neprivalomas
+  "psl_skaicius": 320,              // neprivalomas, int
+  "ISBN": "9785417012345",          // neprivalomas, max 20 simbolių
+  "virselio_nuotrauka": "https://...", // neprivalomas, max 500 simbolių
+  "kalba": "Lietuvių",              // neprivalomas, max 50 simbolių
+  "bestseleris": false,             // neprivalomas, default: false
+  "AutoriusId": "guid",             // privalomas
+  "ZanrasId": "guid"                // privalomas
 }
 ```
 
-**GET `/{id}`** - Knygos detalės
+**PUT `/{id}`** - Atnaujinti knygą
 ```json
+// Request body - visi laukai neprivalomi
 {
-  "Id", "knygos_pavadinimas", "leidimo_metai", "aprasymas",
-  "psl_skaicius", "ISBN", "virselio_nuotrauka", "raisos", "bestseleris",
-  "AutoriusId", "Autorius": { "Id", "vardas", "pavarde", "nuotrauka" },
-  "vidutinis_vertinimas", "komentaru_skaicius",
-  "zanrai": [{ "Id", "pavadinimas" }],
-  "nuotaikos": [{ "Id", "pavadinimas" }],
-  "di_komentaras": { "Id", "sugeneravimo_data", "tekstas", "modelis" }
+  "knygos_pavadinimas": "Naujas pavadinimas",
+  "leidimo_metai": "2025-01-01",
+  "aprasymas": "Naujas aprašymas...",
+  "psl_skaicius": 350,
+  "ISBN": "9785417012346",
+  "virselio_nuotrauka": "https://...",
+  "kalba": "Anglų",
+  "bestseleris": true,
+  "AutoriusId": "guid",
+  "ZanrasId": "guid"
 }
 ```
 
-**GET `/{id}/komentarai`** - Knygos komentarai
+**POST `/isplestine-paieska`** - Išplėstinė AI paieška
+```json
+// Request body - bent vienas laukas rekomenduojamas
+{
+  "ScenarijausAprasymas": "Ieškau knygos apie totalitarinę visuomenę",  // neprivalomas
+  "ZanruIds": ["guid1", "guid2"],    // neprivalomas, kelių žanrų filtras
+  "NuotaikuIds": ["guid1", "guid2"]  // neprivalomas, kelių nuotaikų filtras
+}
 
-**POST `/`** - Sukurti knygą (Redaktorius/Admin)
+// Response
+[
+  {
+    "Id": "guid",
+    "knygos_pavadinimas": "1984",
+    "leidimo_metai": "1949-06-08",
+    "virselio_nuotrauka": "https://...",
+    "bestseleris": true,
+    "autorius_vardas": "George Orwell",
+    "vidutinis_vertinimas": 4.8,
+    "komentaru_skaicius": 15,
+    "zanras": "Mokslinė fantastika"
+  }
+]
+```
 
-**PUT `/{id}`** - Atnaujinti knygą (Redaktorius/Admin)
-
-**DELETE `/{id}`** - Ištrinti knygą (Redaktorius/Admin)
+**Filtravimo logika:**
+- Jei nurodytas tik 1 filtras - filtruojama tik pagal jį
+- Jei nurodyti 2 ar 3 filtrai - knygos turi atitikti VISUS kriterijus (AND logika)
+- `ScenarijausAprasymas` - OpenAI analizuoja ir grąžina tinkamiausias knygas
+- `ZanruIds` / `NuotaikuIds` - paprastas filtravimas
 
 ---
 
 ### Autoriai (`/api/autoriai`)
 
-**GET `/`** - Autorių sąrašas (su pagination)
-```json
-// Response item
-{ "Id", "vardas", "pavarde", "nuotrauka", "knygu_skaicius" }
-```
+| Metodas | Endpoint | JWT | Rolės | Aprašymas |
+|---------|----------|-----|-------|-----------|
+| GET | `/` | ❌ | - | Autorių sąrašas |
+| GET | `/{id}` | ❌ | - | Autoriaus detalės |
+| GET | `/{id}/knygos` | ❌ | - | Autoriaus knygos |
+| GET | `/{id}/citatos` | ❌ | - | Autoriaus citatos |
+| POST | `/` | ✅ | redaktorius, admin | Sukurti autorių |
+| PUT | `/{id}` | ✅ | redaktorius, admin | Atnaujinti autorių |
+| DELETE | `/{id}` | ✅ | redaktorius, admin | Ištrinti autorių |
 
-**GET `/{id}`** - Autoriaus detalės
+**POST `/`** - Sukurti autorių
 ```json
+// Request body
 {
-  "Id", "vardas", "pavarde", "gimimo_metai", "mirties_data",
-  "curiculum_vitae", "nuotrauka", "laidybe", "knygu_skaicius",
-  "knygos": [KnygaListDto...],
-  "citatos": [{ "Id", "citatos_tekstas", "citatos_data", "citatos_saltinis" }],
-  "sekejuSkaicius"
+  "vardas": "Jonas",              // privalomas, max 100 simbolių
+  "pavarde": "Biliūnas",          // privalomas, max 100 simbolių
+  "gimimo_metai": "1879-04-11",   // neprivalomas, DateTime
+  "mirties_data": "1907-12-08",   // neprivalomas, DateTime
+  "curiculum_vitae": "Biografija...", // neprivalomas
+  "nuotrauka": "https://...",     // neprivalomas, max 500 simbolių
+  "laidybe": "Lietuvis"           // neprivalomas, max 255 simbolių
 }
 ```
 
-**GET `/{id}/knygos`** - Autoriaus knygos
-
-**GET `/{id}/citatos`** - Autoriaus citatos
-
-**POST `/`** - Sukurti autorių (Redaktorius/Admin)
-
-**PUT `/{id}`** - Atnaujinti autorių (Redaktorius/Admin)
-
-**DELETE `/{id}`** - Ištrinti autorių (Redaktorius/Admin)
+**PUT `/{id}`** - Atnaujinti autorių
+```json
+// Request body - visi laukai neprivalomi
+{
+  "vardas": "Jonas",
+  "pavarde": "Biliūnas",
+  "gimimo_metai": "1879-04-11",
+  "mirties_data": "1907-12-08",
+  "curiculum_vitae": "Atnaujinta biografija...",
+  "nuotrauka": "https://...",
+  "tautybe": "Lietuvis"           // max 100 simbolių
+}
+```
 
 ---
 
 ### Komentarai (`/api/komentarai`)
 
-**GET `/knyga/{knygaId}`** - Knygos komentarai
+| Metodas | Endpoint | JWT | Rolės | Aprašymas |
+|---------|----------|-----|-------|-----------|
+| GET | `/knyga/{knygaId}` | ❌ | - | Knygos komentarai |
+| POST | `/` | ✅ | - | Sukurti komentarą |
+| PUT | `/{id}` | ✅ | - | Atnaujinti komentarą (tik savą) |
+| DELETE | `/{id}` | ✅ | - | Ištrinti komentarą (savą arba admin/moderatorius) |
+
+**POST `/`** - Sukurti komentarą
 ```json
-// Response item
+// Request body
 {
-  "Id", "komentaro_tekstas", "komentaro_data", "vertinimas",
-  "redagavimo_data", "NaudotojasId", "naudotojo_slapyvardis",
-  "naudotojo_nuotrauka", "KnygaId", "TemaId"
+  "komentaro_tekstas": "Puiki knyga!",  // privalomas
+  "vertinimas": 5,                       // privalomas, 1-5
+  "KnygaId": "guid",                     // neprivalomas (jei komentuojama knyga)
+  "TemaId": "guid"                       // neprivalomas (jei komentuojama tema)
 }
 ```
 
-**POST `/`** - Sukurti komentarą (reikia JWT)
-```json
-// Request
-{ "komentaro_tekstas": "...", "vertinimas": 5, "KnygaId": "guid" }
-```
-
 **PUT `/{id}`** - Atnaujinti komentarą
-
-**DELETE `/{id}`** - Ištrinti komentarą
+```json
+// Request body - visi laukai neprivalomi
+{
+  "komentaro_tekstas": "Atnaujintas komentaras",
+  "vertinimas": 4                        // 1-5
+}
+```
 
 ---
 
 ### Įrašai / Bookshelf (`/api/irasai`)
 
-**GET `/`** - Naudotojo knygų sąrašas (reikia JWT)
-```json
-// Response item
-{
-  "Id", "tipas": "skaityta|skaitoma|norima_skaityti",
-  "sukurimo_data", "redagavimo_data",
-  "Knyga": { KnygaListDto }
-}
-```
+| Metodas | Endpoint | JWT | Rolės | Aprašymas |
+|---------|----------|-----|-------|-----------|
+| GET | `/` | ✅ | - | Naudotojo knygų sąrašas |
+| GET | `/rekomendacijos` | ✅ | - | Gauti rekomendacijas |
+| POST | `/` | ✅ | - | Pridėti knygą į sąrašą |
+| PUT | `/{id}` | ✅ | - | Atnaujinti įrašo statusą |
+| DELETE | `/{id}` | ✅ | - | Pašalinti knygą iš sąrašo |
+
+**GET `/`** - Naudotojo knygų sąrašas
+
+Query parametrai:
+- `tipas` - filtras pagal tipą: `skaityta`, `skaitoma`, `norima_skaityti`
 
 **POST `/`** - Pridėti knygą į sąrašą
 ```json
-// Request
-{ "KnygaId": "guid", "tipas": "skaityta" }
+// Request body
+{
+  "KnygaId": "guid",                     // privalomas
+  "tipas": "skaityta"                    // privalomas, galimos: "skaityta", "skaitoma", "norima_skaityti"
+}
 ```
 
 **PUT `/{id}`** - Atnaujinti įrašo statusą
-
-**DELETE `/{id}`** - Pašalinti knygą iš sąrašo
+```json
+// Request body
+{
+  "tipas": "skaitoma"                    // privalomas, galimos: "skaityta", "skaitoma", "norima_skaityti"
+}
+```
 
 ---
 
 ### Temos / Forumas (`/api/temos`)
 
-**GET `/`** - Temų sąrašas (su pagination)
+| Metodas | Endpoint | JWT | Rolės | Aprašymas |
+|---------|----------|-----|-------|-----------|
+| GET | `/` | ❌ | - | Temų sąrašas |
+| GET | `/{id}` | ❌ | - | Temos detalės |
+| GET | `/{id}/komentarai` | ❌ | - | Temos komentarai |
+| POST | `/` | ✅ | - | Sukurti temą |
+| PUT | `/{id}` | ✅ | - | Atnaujinti temą (tik savą) |
+| DELETE | `/{id}` | ✅ | - | Ištrinti temą (savą arba moderatorius/admin) |
+| PUT | `/{id}/prikabinti` | ✅ | moderatorius, admin | Prikabinti/atkabinti temą |
+| POST | `/{id}/komentarai` | ✅ | - | Pridėti komentarą į temą |
+
+**POST `/`** - Sukurti temą
 ```json
-// Response item
+// Request body
 {
-  "Id", "pavadinimas", "sukurimo_data", "prikabinta",
-  "autorius_slapyvardis", "komentaru_skaicius"
+  "pavadinimas": "Diskusija apie...",    // privalomas, max 255 simboliai
+  "tekstas": "Temos turinys..."          // privalomas
 }
 ```
 
-**GET `/{id}`** - Temos detalės (su komentarais)
-
-**POST `/`** - Sukurti temą (reikia JWT)
-
 **PUT `/{id}`** - Atnaujinti temą
+```json
+// Request body - visi laukai neprivalomi
+{
+  "pavadinimas": "Atnaujintas pavadinimas",
+  "tekstas": "Atnaujintas turinys..."
+}
+```
 
-**DELETE `/{id}`** - Ištrinti temą
+**POST `/{id}/komentarai`** - Pridėti komentarą į temą
+```json
+// Request body
+{
+  "komentaro_tekstas": "Komentaro tekstas...",  // privalomas
+  "vertinimas": 5                               // privalomas, 1-5
+}
+```
 
 ---
 
 ### Balsavimai (`/api/balsavimai`)
 
-**GET `/current`** - Dabartinis aktyvus balsavimas
+| Metodas | Endpoint | JWT | Rolės | Aprašymas |
+|---------|----------|-----|-------|-----------|
+| GET | `/dabartinis` | ❌ | - | Dabartinis aktyvus balsavimas |
+| GET | `/{id}` | ❌ | - | Balsavimo detalės |
+| POST | `/` | ✅ | admin | Sukurti balsavimą |
+| GET | `/{id}/oro-prognoze` | ❌ | - | Gauti orų prognozę |
 
-**POST `/vote`** - Balsuoti už knygą (reikia JWT)
+**POST `/`** - Sukurti balsavimą
 ```json
-// Request
-{ "KnygaId": "guid" }
+// Request body
+{
+  "balsavimo_pradzia": "2025-01-15T00:00:00Z",  // privalomas
+  "balsavimo_pabaiga": "2025-01-22T23:59:59Z",  // privalomas
+  "susitikimo_data": "2025-01-25T18:00:00Z",    // neprivalomas
+  "nominuotos_knygos": ["guid1", "guid2", "guid3"]  // privalomas, bent 1 knyga
+}
+```
+
+### Balsai (`/api/balsai`)
+
+| Metodas | Endpoint | JWT | Rolės | Aprašymas |
+|---------|----------|-----|-------|-----------|
+| POST | `/` | ✅ | - | Balsuoti už knygą |
+| DELETE | `/{id}` | ✅ | - | Pašalinti balsą |
+
+**POST `/`** - Balsuoti už knygą
+```json
+// Request body
+{
+  "BalsavimasId": "guid",                // privalomas
+  "KnygaId": "guid"                      // privalomas
+}
 ```
 
 ---
 
 ### Sekimai (`/api/sekimai`)
 
-**GET `/check/{autoriusId}`** - Ar naudotojas seka autorių (reikia JWT)
-```json
-{ "spiking": true }
-```
+| Metodas | Endpoint | JWT | Rolės | Aprašymas |
+|---------|----------|-----|-------|-----------|
+| GET | `/` | ✅ | - | Visi naudotojo sekimai |
+| GET | `/tikrinti/{autoriusId}` | ✅ | - | Ar seka autorių |
+| POST | `/` | ✅ | - | Sekti autorių |
+| DELETE | `/{autoriusId}` | ✅ | - | Nebesekti autoriaus |
 
-**POST `/`** - Sekti autorių (reikia JWT)
+**POST `/`** - Sekti autorių
 ```json
-// Request
-{ "AutoriusId": "guid" }
-```
+// Request body
+{
+  "AutoriusId": "guid"                   // privalomas
+}
 
-**DELETE `/{autoriusId}`** - Nebesekti autoriaus (reikia JWT)
+// Response
+{
+  "isFollowing": true
+}
+```
 
 ---
 
 ### Žanrai (`/api/zanrai`)
 
-**GET `/`** - Žanrų sąrašas
+| Metodas | Endpoint | JWT | Rolės | Aprašymas |
+|---------|----------|-----|-------|-----------|
+| GET | `/` | ❌ | - | Žanrų sąrašas |
+| POST | `/` | ✅ | redaktorius, admin | Sukurti žanrą |
+| DELETE | `/{id}` | ✅ | redaktorius, admin | Ištrinti žanrą |
+
+**POST `/`** - Sukurti žanrą
 ```json
-[{ "Id", "pavadinimas" }]
+// Request body
+{
+  "pavadinimas": "Fantastika"            // privalomas
+}
 ```
 
 ---
 
 ### Nuotaikos (`/api/nuotaikos`)
 
-**GET `/`** - Nuotaikų sąrašas
+| Metodas | Endpoint | JWT | Rolės | Aprašymas |
+|---------|----------|-----|-------|-----------|
+| GET | `/` | ❌ | - | Nuotaikų sąrašas |
+| POST | `/` | ✅ | redaktorius, admin | Sukurti nuotaiką |
+| DELETE | `/{id}` | ✅ | redaktorius, admin | Ištrinti nuotaiką |
+
+**POST `/`** - Sukurti nuotaiką
 ```json
-[{ "Id", "pavadinimas" }]
+// Request body
+{
+  "pavadinimas": "Džiugi"                // privalomas
+}
 ```
 
 ---
 
 ### Citatos (`/api/citatos`)
 
-**GET `/autorius/{autoriusId}`** - Autoriaus citatos
+| Metodas | Endpoint | JWT | Rolės | Aprašymas |
+|---------|----------|-----|-------|-----------|
+| GET | `/autorius/{autoriusId}` | ❌ | - | Autoriaus citatos |
+| POST | `/` | ✅ | redaktorius, admin | Sukurti citatą |
+| DELETE | `/{id}` | ✅ | redaktorius, admin | Ištrinti citatą |
 
-**POST `/`** - Sukurti citatą (Redaktorius/Admin)
-
-**DELETE `/{id}`** - Ištrinti citatą (Redaktorius/Admin)
+**POST `/`** - Sukurti citatą
+```json
+// Request body
+{
+  "citatos_tekstas": "Citatos tekstas...",  // privalomas
+  "citatos_data": "1900-01-01",             // neprivalomas
+  "citatos_saltinis": "Knyga, psl. 42",     // neprivalomas, max 255 simboliai
+  "AutoriusId": "guid"                      // privalomas
+}
+```
 
 ## Autorizacijos Politikos
 
@@ -524,6 +728,29 @@ Query parametrai:
 - `NaudotojasId` (Guid, FK -> Naudotojas)
 - `BalsavimasId` (Guid, FK -> Balsavimas)
 - `KnygaId` (Guid, FK -> Knyga)
+
+## Išorinės API
+
+### OpenAI (GPT-4o mini)
+Naudojama išplėstinei knygų paieškai pagal scenarijaus aprašymą.
+- Reikia API rakto `.env` faile
+
+### api.meteo.lt
+Naudojama realiai orų prognozei knygų klubo susitikimams KTU miestelyje.
+- Nemokama, nereikia API rakto
+- Endpoint: `https://api.meteo.lt/v1/places/kaunas/forecasts/long-term`
+
+### Brevo (Email pranešimai)
+Naudojama el. pašto pranešimams siųsti autoriaus sekėjams, kai sukuriama nauja knyga.
+- Nemokama paskyra (nereikia kortelės): https://www.brevo.com/
+- Reikia API rakto `.env` faile (`BREVO_API_KEY`)
+- Pranešimai siunčiami automatiškai kuriant naują knygą
+- Jei API raktas nekonfigūruotas, el. laiškai tiesiog nesiunčiami (be klaidų)
+
+**Funkcionalumas:**
+- Kai redaktorius/admin sukuria naują knygą, visi to autoriaus sekėjai gauna el. pašto pranešimą
+- Pranešime nurodomas knygos pavadinimas ir autoriaus vardas
+- Sekėjai pridedami per `/api/sekimai` endpoint
 
 ## CORS
 

@@ -12,6 +12,7 @@ namespace lentynaBackEnd.Models.Entities
         public string pavadinimas { get; set; } = string.Empty;
 
         // Navigation properties
-        public List<KnygaZanras> KnygaZanrai { get; set; } = new();
+        public List<Knyga> Knygos { get; set; } = new();
+        public List<Nuotaika> Nuotaikos { get; set; } = new();
     }
 }

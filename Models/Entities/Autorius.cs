@@ -24,8 +24,8 @@ namespace lentynaBackEnd.Models.Entities
         [MaxLength(500)]
         public string? nuotrauka { get; set; }
 
-        [MaxLength(255)]
-        public string? laidybe { get; set; }
+        [MaxLength(100)]
+        public string? tautybe { get; set; }
 
         public int knygu_skaicius { get; set; } = 0;
 

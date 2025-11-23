@@ -10,5 +10,6 @@ namespace lentynaBackEnd.Repositories.Interfaces
         Task<bool> DeleteAsync(Guid naudotojasId, Guid autoriusId);
         Task<bool> ExistsAsync(Guid naudotojasId, Guid autoriusId);
         Task<int> GetFollowerCountAsync(Guid autoriusId);
+        Task<IEnumerable<Autoriaus_sekimas>> GetFollowersByAutoriusIdAsync(Guid autoriusId);
     }
 }

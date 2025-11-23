@@ -23,11 +23,7 @@ namespace lentynaBackEnd.Repositories.Implementations
         {
             return await _context.Autoriai
                 .Include(a => a.Knygos)
-                    .ThenInclude(k => k.KnygaZanrai)
-                    .ThenInclude(kz => kz.Zanras)
-                .Include(a => a.Knygos)
-                    .ThenInclude(k => k.KnygaNuotaikos)
-                    .ThenInclude(kn => kn.Nuotaika)
+                    .ThenInclude(k => k.Zanras)
                 .Include(a => a.Citatos)
                 .FirstOrDefaultAsync(a => a.Id == id);
         }
@@ -75,10 +71,7 @@ namespace lentynaBackEnd.Repositories.Implementations
         {
             return await _context.Knygos
                 .Where(k => k.AutoriusId == autoriusId)
-                .Include(k => k.KnygaZanrai)
-                    .ThenInclude(kz => kz.Zanras)
-                .Include(k => k.KnygaNuotaikos)
-                    .ThenInclude(kn => kn.Nuotaika)
+                .Include(k => k.Zanras)
                 .ToListAsync();
         }
 

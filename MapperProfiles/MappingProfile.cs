@@ -30,16 +30,11 @@ namespace lentynaBackEnd.MapperProfiles
             CreateMap<Knyga, KnygaListDto>()
                 .ForMember(dest => dest.autorius_vardas, opt => opt.MapFrom(src =>
                     src.Autorius != null ? $"{src.Autorius.vardas} {src.Autorius.pavarde}" : ""))
-                .ForMember(dest => dest.zanrai, opt => opt.MapFrom(src =>
-                    src.KnygaZanrai.Select(kz => kz.Zanras!.pavadinimas).ToList()))
-                .ForMember(dest => dest.nuotaikos, opt => opt.MapFrom(src =>
-                    src.KnygaNuotaikos.Select(kn => kn.Nuotaika!.pavadinimas).ToList()));
+                .ForMember(dest => dest.zanras, opt => opt.MapFrom(src =>
+                    src.Zanras != null ? src.Zanras.pavadinimas : ""));
 
             CreateMap<Knyga, KnygaDetailDto>()
-                .ForMember(dest => dest.zanrai, opt => opt.MapFrom(src =>
-                    src.KnygaZanrai.Select(kz => kz.Zanras)))
-                .ForMember(dest => dest.nuotaikos, opt => opt.MapFrom(src =>
-                    src.KnygaNuotaikos.Select(kn => kn.Nuotaika)))
+                .ForMember(dest => dest.Zanras, opt => opt.MapFrom(src => src.Zanras))
                 .ForMember(dest => dest.di_komentaras, opt => opt.MapFrom(src =>
                     src.DI_Komentarai.FirstOrDefault()));
 
