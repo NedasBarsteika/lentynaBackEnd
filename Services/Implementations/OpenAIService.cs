@@ -1,5 +1,6 @@
 using System.Text.Json;
 using lentynaBackEnd.DTOs.Knygos;
+using lentynaBackEnd.Models.Entities;
 using lentynaBackEnd.Services.Interfaces;
 using OpenAI.Chat;
 
@@ -100,6 +101,64 @@ Rask tinkamiausias knygas pagal aprašytą scenarijų.";
             {
                 _logger.LogError(ex, "Error calling OpenAI API");
                 throw;
+            }
+        }
+
+        public async Task<string> GeneruotiKnygosAtsiliepima(string knygosPavadinimas, List<Komentaras> komentarai)
+        {
+            if (komentarai.Count == 0)
+            {
+                return "Kol kas nėra jokių atsiliepimų apie šią knygą. Būkite pirmas, kuris pasidalins savo nuomone!";
+            }
+
+            var komentaruSarasas = string.Join("\n\n", komentarai.Select((k, index) =>
+                $"Atsiliepimas {index + 1}:\n" +
+                $"Įvertinimas: {k.vertinimas}/5\n" +
+                $"Komentaras: {k.komentaro_tekstas}"));
+
+            var systemPrompt = @"Tu esi knygų kritikos ekspertas ir turi parašyti objektyvų, apibendrintą atsiliepimą apie knygą remiantis skaitytojų pateiktais atsiliepimais.
+
+Tavo užduotis:
+1. Išanalizuoti visus pateiktus skaitytojų atsiliepimus
+2. Apibendrint pagrindinius knygos privalumus ir trūkumus, kuriuos mini skaitytojai
+3. Parašyti trumpą (2-4 sakinių), informatyvų apibendrinimą lietuvių kalba
+4. Atspindėti bendrą skaitytojų nuotaiką (pozityvi, neutrali, ar mišri)
+5. Būti objektyviam ir nešališkam
+
+Atsakymas turi būti tik tekstas, be jokių papildomų formatavimų ar įžangų.";
+
+            var userPrompt = $@"Knyga: {knygosPavadinimas}
+
+Skaitytojų atsiliepimai:
+{komentaruSarasas}
+
+Parašyk apibendrintą atsiliepimą apie šią knygą.";
+
+            try
+            {
+                var messages = new List<ChatMessage>
+                {
+                    new SystemChatMessage(systemPrompt),
+                    new UserChatMessage(userPrompt)
+                };
+
+                var options = new ChatCompletionOptions
+                {
+                    Temperature = 0.5f,
+                    MaxOutputTokenCount = 300
+                };
+
+                var response = await _chatClient.CompleteChatAsync(messages, options);
+                var content = response.Value.Content[0].Text.Trim();
+
+                _logger.LogInformation("Generated AI review for book: {BookTitle}", knygosPavadinimas);
+
+                return content;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating AI review for book: {BookTitle}", knygosPavadinimas);
+                return "Atsiprašome, nepavyko sugeneruoti automatinio atsiliepimo. Bandykite vėliau.";
             }
         }
 
