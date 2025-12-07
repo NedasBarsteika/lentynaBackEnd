@@ -104,19 +104,6 @@ namespace lentynaBackEnd.Controllers
             return NoContent();
         }
 
-        [HttpPut("{id}/prikabinti")]
-        [Authorize(Roles = "moderatorius,admin")]
-        public async Task<IActionResult> TogglePin(Guid id)
-        {
-            var result = await _temaService.TogglePinAsync(id);
-
-            if (!result.IsSuccess)
-            {
-                return BadRequest(new { message = result.Message });
-            }
-
-            return NoContent();
-        }
 
         [HttpGet("{id}/komentarai")]
         public async Task<IActionResult> GetKomentarai(Guid id)

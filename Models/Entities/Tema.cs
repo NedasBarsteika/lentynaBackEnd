@@ -22,8 +22,6 @@ namespace lentynaBackEnd.Models.Entities
 
         public DateTime? istrynimo_data { get; set; }
 
-        public bool prikabinta { get; set; } = false;
-
         // Foreign key
         public Guid NaudotojasId { get; set; }
 

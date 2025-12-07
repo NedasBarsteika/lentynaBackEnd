@@ -21,8 +21,6 @@ namespace lentynaBackEnd.Models.Entities
 
         public bool uzbaigtas { get; set; } = false;
 
-        public DateTime? susitikimo_data { get; set; }
-
         // Navigation properties
         public List<Balsas> Balsai { get; set; } = new();
     }

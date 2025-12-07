@@ -137,7 +137,6 @@ namespace lentynaBackEnd.Data
                         pavadinimas = "Knygų klubo savaitinė tema",
                         tekstas = "Sveiki! Čia yra mūsų savaitinė knygų klubo diskusija. Šią savaitę aptariame geriausias 2024 metų knygas. Dalinkitės savo rekomendacijomis!",
                         sukurimo_data = DateTime.UtcNow.AddDays(-7),
-                        prikabinta = true,
                         NaudotojasId = Guid.Parse("a0000000-0000-0000-0000-000000000001")
                     },
                     new Tema
@@ -375,7 +374,6 @@ namespace lentynaBackEnd.Data
                         balsavimo_pabaiga = DateTime.UtcNow.AddDays(-7),
                         isrinkta_knyga_id = Guid.Parse("c0000000-0000-0000-0000-000000000005"), // Dievų miškas
                         uzbaigtas = true,
-                        susitikimo_data = DateTime.UtcNow.AddDays(-5)
                     },
                     new Balsavimas
                     {
@@ -383,7 +381,6 @@ namespace lentynaBackEnd.Data
                         balsavimo_pradzia = DateTime.UtcNow.AddDays(-3),
                         balsavimo_pabaiga = DateTime.UtcNow.AddDays(4),
                         uzbaigtas = false,
-                        susitikimo_data = DateTime.UtcNow.AddDays(7)
                     }
                 };
 
