@@ -95,20 +95,5 @@ namespace lentynaBackEnd.Services.Implementations
 
             return Result.Success();
         }
-
-        public async Task<Result> TogglePinAsync(Guid id)
-        {
-            var tema = await _temaRepository.GetByIdAsync(id);
-
-            if (tema == null)
-            {
-                return Result.Failure(Constants.TemaNerastas);
-            }
-
-            tema.prikabinta = !tema.prikabinta;
-            await _temaRepository.UpdateAsync(tema);
-
-            return Result.Success();
-        }
     }
 }

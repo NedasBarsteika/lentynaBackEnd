@@ -56,7 +56,6 @@ namespace lentynaBackEnd.Services.Implementations
             {
                 balsavimo_pradzia = dto.balsavimo_pradzia,
                 balsavimo_pabaiga = dto.balsavimo_pabaiga,
-                susitikimo_data = dto.susitikimo_data
             };
 
             await _balsavimasRepository.AddAsync(balsavimas);
@@ -143,13 +142,8 @@ namespace lentynaBackEnd.Services.Implementations
                 return (Result.Failure(Constants.BalsavimasNerastas), null);
             }
 
-            if (!balsavimas.susitikimo_data.HasValue)
-            {
-                return (Result.Failure("Susitikimo data nenustatyta"), null);
-            }
-
             // Get real weather forecast from api.meteo.lt (not saved to database)
-            var weather = await _meteoService.GetOroPrognozeAsync(balsavimas.susitikimo_data.Value);
+            var weather = await _meteoService.GetOroPrognozeAsync(balsavimas.balsavimo_pabaiga);
 
             return (Result.Success(), weather);
         }
@@ -186,7 +180,6 @@ namespace lentynaBackEnd.Services.Implementations
                 balsavimo_pradzia = balsavimas.balsavimo_pradzia,
                 balsavimo_pabaiga = balsavimas.balsavimo_pabaiga,
                 uzbaigtas = balsavimas.uzbaigtas,
-                susitikimo_data = balsavimas.susitikimo_data,
                 isrinkta_knyga = balsavimas.IsrinktaKnyga != null
                     ? _mapper.Map<DTOs.Knygos.KnygaListDto>(balsavimas.IsrinktaKnyga)
                     : null,

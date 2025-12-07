@@ -11,6 +11,5 @@ namespace lentynaBackEnd.Services.Interfaces
         Task<(Result Result, TemaDetailDto? Tema)> CreateAsync(Guid naudotojasId, CreateTemaDto dto);
         Task<(Result Result, TemaDetailDto? Tema)> UpdateAsync(Guid id, Guid naudotojasId, UpdateTemaDto dto);
         Task<Result> DeleteAsync(Guid id, Guid naudotojasId, bool isModerator);
-        Task<Result> TogglePinAsync(Guid id);
     }
 }

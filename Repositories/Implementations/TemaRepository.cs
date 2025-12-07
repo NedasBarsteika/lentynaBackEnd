@@ -40,8 +40,7 @@ namespace lentynaBackEnd.Repositories.Implementations
             var totalCount = await query.CountAsync();
 
             var items = await query
-                .OrderByDescending(t => t.prikabinta)
-                .ThenByDescending(t => t.sukurimo_data)
+                .OrderByDescending(t => t.sukurimo_data)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();

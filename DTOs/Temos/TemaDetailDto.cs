@@ -9,7 +9,6 @@ namespace lentynaBackEnd.DTOs.Temos
         public string tekstas { get; set; } = string.Empty;
         public DateTime sukurimo_data { get; set; }
         public DateTime? redagavimo_data { get; set; }
-        public bool prikabinta { get; set; }
         public Guid NaudotojasId { get; set; }
         public string autorius_slapyvardis { get; set; } = string.Empty;
         public string? autorius_nuotrauka { get; set; }
