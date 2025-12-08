@@ -20,14 +20,15 @@ namespace lentynaBackEnd.Controllers
         [HttpGet("dabartinis")]
         public async Task<IActionResult> GetCurrent()
         {
-            var (result, balsavimas) = await _balsavimasService.GetCurrentAsync();
+            var (result, balsavimasDto) = await _balsavimasService.GetCurrentAsync();
 
             if (!result.IsSuccess)
             {
                 return NotFound(new { message = result.Message });
             }
 
-            return Ok(balsavimas);
+
+            return Ok(balsavimasDto);
         }
 
         [HttpGet("{id}")]

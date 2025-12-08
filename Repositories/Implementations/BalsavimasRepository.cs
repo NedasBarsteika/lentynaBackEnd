@@ -35,8 +35,9 @@ namespace lentynaBackEnd.Repositories.Implementations
             var now = DateTime.UtcNow;
             return await _context.Balsavimai
                 .Include(b => b.Balsai)
-                    .ThenInclude(ba => ba.Knyga)
-                    .ThenInclude(k => k!.Autorius)
+                .ThenInclude(ba => ba.Knyga)
+                .ThenInclude(k => k!.Autorius)
+                .OrderByDescending(b => b.balsavimo_pabaiga)
                 // .Where(b => b.balsavimo_pradzia <= now && b.balsavimo_pabaiga >= now)
                 .FirstOrDefaultAsync();
         }

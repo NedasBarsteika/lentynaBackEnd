@@ -35,6 +35,26 @@ namespace lentynaBackEnd.Services.Implementations
                 return (Result.Failure("Šiuo metu nėra aktyvaus balsavimo"), null);
             }
 
+
+            var now = DateTime.Now;
+            var balsavimasDto = await MapToDtoAsync(balsavimas);
+            if (balsavimas.balsavimo_pabaiga < now || (balsavimas.uzbaigtas && balsavimas.isrinkta_knyga_id == null))
+            {
+                int max = -1;
+                Guid? maxId = null;
+                foreach (var knyga in balsavimasDto.nominuotos_knygos)
+                {
+                    if (knyga.balsu_skaicius > max)
+                    {
+                        max = knyga.balsu_skaicius;
+                        maxId = knyga.Id;
+                    }
+                }
+                balsavimas.isrinkta_knyga_id = maxId;
+                balsavimas.uzbaigtas = true;
+                await _balsavimasRepository.UpdateAsync(balsavimas);
+            }
+
             return (Result.Success(), await MapToDtoAsync(balsavimas));
         }
 
@@ -142,8 +162,8 @@ namespace lentynaBackEnd.Services.Implementations
                 return (Result.Failure(Constants.BalsavimasNerastas), null);
             }
 
-            // Get real weather forecast from api.meteo.lt (not saved to database)
-            var weather = await _meteoService.GetOroPrognozeAsync(balsavimas.balsavimo_pabaiga);
+            var susitikimo_data = balsavimas.balsavimo_pabaiga.AddDays(2);
+            var weather = await _meteoService.GetOroPrognozeAsync(susitikimo_data);
 
             return (Result.Success(), weather);
         }
@@ -180,9 +200,16 @@ namespace lentynaBackEnd.Services.Implementations
                 balsavimo_pradzia = balsavimas.balsavimo_pradzia,
                 balsavimo_pabaiga = balsavimas.balsavimo_pabaiga,
                 uzbaigtas = balsavimas.uzbaigtas,
-                isrinkta_knyga = balsavimas.IsrinktaKnyga != null
-                    ? _mapper.Map<DTOs.Knygos.KnygaListDto>(balsavimas.IsrinktaKnyga)
-                    : null,
+                isrinkta_knyga = balsavimas.IsrinktaKnyga != null ? new KnygaBalsuDto
+                {
+                    Id = balsavimas.IsrinktaKnyga.Id,
+                    knygos_pavadinimas = balsavimas.IsrinktaKnyga.knygos_pavadinimas,
+                    virselio_nuotrauka = balsavimas.IsrinktaKnyga.virselio_nuotrauka,
+                    autorius_vardas = balsavimas.IsrinktaKnyga.Autorius != null
+                            ? $"{balsavimas.IsrinktaKnyga.Autorius.vardas} {balsavimas.IsrinktaKnyga.Autorius.pavarde}"
+                            : "",
+                    balsu_skaicius = voteCounts.GetValueOrDefault(balsavimas.IsrinktaKnyga.Id, 0)
+                } : null,
                 nominuotos_knygos = knygosBalsu.OrderByDescending(k => k.balsu_skaicius).ToList(),
                 viso_balsu = voteCounts.Values.Sum()
             };
