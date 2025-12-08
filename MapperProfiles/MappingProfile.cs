@@ -34,9 +34,8 @@ namespace lentynaBackEnd.MapperProfiles
                     src.Zanras != null ? src.Zanras.pavadinimas : ""));
 
             CreateMap<Knyga, KnygaDetailDto>()
-                .ForMember(dest => dest.Zanras, opt => opt.MapFrom(src => src.Zanras))
-                .ForMember(dest => dest.di_komentaras, opt => opt.MapFrom(src =>
-                    src.DI_Komentarai.FirstOrDefault()));
+                .ForMember(dest => dest.Zanras, opt => opt.MapFrom(src => src.Zanras));
+        
 
             // Zanras mappings
             CreateMap<Zanras, ZanrasDto>();

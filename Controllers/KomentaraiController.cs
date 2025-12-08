@@ -85,6 +85,21 @@ namespace lentynaBackEnd.Controllers
             return NoContent();
         }
 
+         [HttpGet("komentarai/{id}")]
+        public async Task<IActionResult> GetKomentarai(Guid id)
+        {
+            var komentarai = await _komentarasService.GetByKnygaIdAsync(id);
+            return Ok(komentarai);
+        }
+
+        [HttpGet("dikomentaras/{id}")]
+        public async Task<IActionResult> Getdikomentaras (Guid id)
+        {
+            var komentarai = await _komentarasService.GetDIComment(id);
+            return Ok(komentarai);
+        }
+
+
         private Guid? GetCurrentUserId()
         {
             var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);

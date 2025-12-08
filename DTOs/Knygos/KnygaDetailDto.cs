@@ -17,7 +17,6 @@ namespace lentynaBackEnd.DTOs.Knygos
         public ZanrasDto Zanras { get; set; } = null!;
         public double vidutinis_vertinimas { get; set; }
         public int komentaru_skaicius { get; set; }
-        public DIKomentarasDto? di_komentaras { get; set; }
     }
 
     public class AutoriusSummaryDto
@@ -41,11 +40,4 @@ namespace lentynaBackEnd.DTOs.Knygos
         public Guid ZanrasId { get; set; }
     }
 
-    public class DIKomentarasDto
-    {
-        public Guid Id { get; set; }
-        public DateTime sugeneravimo_data { get; set; }
-        public string tekstas { get; set; } = string.Empty;
-        public string modelis { get; set; } = string.Empty;
-    }
 }
