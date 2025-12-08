@@ -143,12 +143,10 @@ namespace lentynaBackEnd.Controllers
             if (!deleted)
             {
                 return NotFound(new { message = "Nuotrauka nerasta" });
-        // [HttpGet("autorius/{autoriusId}")]
-        // public async Task<IActionResult> GetByAutoriusId(Guid autoriusId)
-        // {
-        //     var citatos = await _citataService.GetByAutoriusIdAsync(autoriusId);
-        //     return Ok(citatos);
-        // }
+            }
+
+            return NoContent();
+        }
 
         [HttpPost("citatos")]
         [Authorize(Roles = "redaktorius,admin")]
