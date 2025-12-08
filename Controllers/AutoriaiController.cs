@@ -108,7 +108,7 @@ namespace lentynaBackEnd.Controllers
         //     return Ok(citatos);
         // }
 
-        [HttpPost("citatos/{id}")]
+        [HttpPost("citatos")]
         [Authorize(Roles = "redaktorius,admin")]
         public async Task<IActionResult> Create([FromBody] CreateCitataDto dto)
         {
