@@ -26,7 +26,7 @@ namespace lentynaBackEnd.Controllers
         [Authorize(Roles = "redaktorius,admin")]
         public async Task<IActionResult> Create([FromBody] CreateNuotaikaDto dto)
         {
-            var (result, nuotaika) = await _nuotaikaService.CreateAsync(dto.pavadinimas);
+            var (result, nuotaika) = await _nuotaikaService.CreateAsync(dto.pavadinimas, dto.ZanrasIds);
 
             if (!result.IsSuccess)
             {
@@ -54,5 +54,6 @@ namespace lentynaBackEnd.Controllers
     public class CreateNuotaikaDto
     {
         public string pavadinimas { get; set; } = string.Empty;
+        public List<Guid> ZanrasIds { get; set; } = new();
     }
 }

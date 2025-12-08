@@ -38,7 +38,7 @@ namespace lentynaBackEnd.DTOs.Knygos
     {
         public Guid Id { get; set; }
         public string pavadinimas { get; set; } = string.Empty;
-        public Guid ZanrasId { get; set; }
+        public List<ZanrasDto> Zanrai { get; set; } = new();
     }
 
     public class DIKomentarasDto

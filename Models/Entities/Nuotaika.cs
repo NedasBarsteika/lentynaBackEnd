@@ -12,10 +12,7 @@ namespace lentynaBackEnd.Models.Entities
         [MaxLength(50)]
         public string pavadinimas { get; set; } = string.Empty;
 
-        // Foreign key
-        public Guid ZanrasId { get; set; }
-
-        [ForeignKey("ZanrasId")]
-        public Zanras? Zanras { get; set; }
+        // Saugome kaip JSON stulpelį duomenų bazėje
+        public List<Guid> ZanrasIds { get; set; } = new();
     }
 }

@@ -37,7 +37,7 @@ namespace lentynaBackEnd.Repositories.Implementations
                 .Include(b => b.Balsai)
                     .ThenInclude(ba => ba.Knyga)
                     .ThenInclude(k => k!.Autorius)
-                // .Where(b => b.balsavimo_pradzia <= now && b.balsavimo_pabaiga >= now)
+                 .Where(b => b.balsavimo_pradzia <= now && b.balsavimo_pabaiga >= now)
                 .FirstOrDefaultAsync();
         }
 

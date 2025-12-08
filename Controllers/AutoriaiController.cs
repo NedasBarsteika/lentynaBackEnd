@@ -11,10 +11,12 @@ namespace lentynaBackEnd.Controllers
     public class AutoriaiController : ControllerBase
     {
         private readonly IAutoriusService _autoriusService;
+        private readonly IFileUploadService _fileUploadService;
 
-        public AutoriaiController(IAutoriusService autoriusService)
+        public AutoriaiController(IAutoriusService autoriusService, IFileUploadService fileUploadService)
         {
             _autoriusService = autoriusService;
+            _fileUploadService = fileUploadService;
         }
 
         [HttpGet]
@@ -93,6 +95,52 @@ namespace lentynaBackEnd.Controllers
         {
             var citatos = await _autoriusService.GetCitatosAsync(id);
             return Ok(citatos);
+        }
+
+        /// <summary>
+        /// Įkelti autoriaus nuotrauką
+        /// </summary>
+        [HttpPost("{id}/nuotrauka")]
+        [Authorize(Roles = "redaktorius,admin")]
+        public async Task<IActionResult> UploadAuthorPhoto(Guid id, IFormFile file)
+        {
+            // Validuoti ar autorius egzistuoja
+            var (result, autorius) = await _autoriusService.GetByIdAsync(id);
+            if (!result.IsSuccess)
+            {
+                return NotFound(new { message = "Autorius nerastas" });
+            }
+
+            var (success, url, error) = await _fileUploadService.UploadImageAsync(file, "images/autoriai");
+
+            if (!success)
+            {
+                return BadRequest(new { message = error });
+            }
+
+            return Ok(new { url });
+        }
+
+        /// <summary>
+        /// Ištrinti autoriaus nuotrauką
+        /// </summary>
+        [HttpDelete("{id}/nuotrauka")]
+        [Authorize(Roles = "redaktorius,admin")]
+        public async Task<IActionResult> DeleteAuthorPhoto(Guid id)
+        {
+            var (result, autorius) = await _autoriusService.GetByIdAsync(id);
+            if (!result.IsSuccess || string.IsNullOrEmpty(autorius?.nuotrauka))
+            {
+                return NotFound(new { message = "Autorius nerastas arba neturi nuotraukos" });
+            }
+
+            var deleted = _fileUploadService.DeleteImage(autorius.nuotrauka);
+            if (!deleted)
+            {
+                return NotFound(new { message = "Nuotrauka nerasta" });
+            }
+
+            return NoContent();
         }
     }
 }
