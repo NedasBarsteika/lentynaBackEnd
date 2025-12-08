@@ -12,12 +12,21 @@ namespace lentynaBackEnd.Controllers
         private readonly IKnygaService _knygaService;
         private readonly IKomentarasService _komentarasService;
         private readonly IFileUploadService _fileUploadService;
+        private readonly IZanrasService _zanrasService;
+        private readonly INuotaikaService _nuotaikaService;
 
-        public KnygosController(IKnygaService knygaService, IKomentarasService komentarasService, IFileUploadService fileUploadService)
+        public KnygosController(
+            IKnygaService knygaService,
+            IKomentarasService komentarasService,
+            IFileUploadService fileUploadService,
+            IZanrasService zanrasService,
+            INuotaikaService nuotaikaService)
         {
             _knygaService = knygaService;
             _komentarasService = komentarasService;
             _fileUploadService = fileUploadService;
+            _zanrasService = zanrasService;
+            _nuotaikaService = nuotaikaService;
         }
 
         [HttpGet]
@@ -148,5 +157,89 @@ namespace lentynaBackEnd.Controllers
 
             return NoContent();
         }
+
+        // Žanrų valdymas
+        [HttpGet("zanrai")]
+        public async Task<IActionResult> GetAllZanrai()
+        {
+            var zanrai = await _zanrasService.GetAllAsync();
+            return Ok(zanrai);
+        }
+
+        [HttpPost("zanrai")]
+        [Authorize(Roles = "redaktorius,admin")]
+        public async Task<IActionResult> CreateZanras([FromBody] CreateZanrasDto dto)
+        {
+            var (result, zanras) = await _zanrasService.CreateAsync(dto.pavadinimas);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(new { message = result.Message });
+            }
+
+            return Ok(zanras);
+        }
+
+        [HttpDelete("zanrai/{id}")]
+        [Authorize(Roles = "redaktorius,admin")]
+        public async Task<IActionResult> DeleteZanras(Guid id)
+        {
+            var result = await _zanrasService.DeleteAsync(id);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(new { message = result.Message });
+            }
+
+            return NoContent();
+        }
+
+        // Nuotaikų valdymas
+        [HttpGet("nuotaikos")]
+        public async Task<IActionResult> GetAllNuotaikos()
+        {
+            var nuotaikos = await _nuotaikaService.GetAllAsync();
+            return Ok(nuotaikos);
+        }
+
+        [HttpPost("nuotaikos")]
+        [Authorize(Roles = "redaktorius,admin")]
+        public async Task<IActionResult> CreateNuotaika([FromBody] CreateNuotaikaDto dto)
+        {
+            var (result, nuotaika) = await _nuotaikaService.CreateAsync(dto.pavadinimas, dto.ZanrasIds);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(new { message = result.Message });
+            }
+
+            return Ok(nuotaika);
+        }
+
+        [HttpDelete("nuotaikos/{id}")]
+        [Authorize(Roles = "redaktorius,admin")]
+        public async Task<IActionResult> DeleteNuotaika(Guid id)
+        {
+            var result = await _nuotaikaService.DeleteAsync(id);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(new { message = result.Message });
+            }
+
+            return NoContent();
+        }
+    }
+
+    // DTOs
+    public class CreateZanrasDto
+    {
+        public string pavadinimas { get; set; } = string.Empty;
+    }
+
+    public class CreateNuotaikaDto
+    {
+        public string pavadinimas { get; set; } = string.Empty;
+        public List<Guid> ZanrasIds { get; set; } = new();
     }
 }
