@@ -11,10 +11,12 @@ namespace lentynaBackEnd.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly IFileUploadService _fileUploadService;
 
-        public AuthController(IAuthService authService)
+        public AuthController(IAuthService authService, IFileUploadService fileUploadService)
         {
             _authService = authService;
+            _fileUploadService = fileUploadService;
         }
 
         [HttpPost("registruotis")]
@@ -112,6 +114,59 @@ namespace lentynaBackEnd.Controllers
             if (!result.IsSuccess)
             {
                 return BadRequest(new { message = result.Message });
+            }
+
+            return NoContent();
+        }
+
+        [HttpGet("naudotojai")]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> GetAllUsers()
+        {
+            var naudotojai = await _authService.GetAllUsersAsync();
+            return Ok(naudotojai);
+        }
+
+        /// <summary>
+        /// Įkelti profilio nuotrauką
+        /// </summary>
+        [HttpPost("profilis/nuotrauka")]
+        [Authorize]
+        public async Task<IActionResult> UploadProfilePhoto(IFormFile file)
+        {
+            var (success, url, error) = await _fileUploadService.UploadImageAsync(file, "images/profiliai");
+
+            if (!success)
+            {
+                return BadRequest(new { message = error });
+            }
+
+            return Ok(new { url });
+        }
+
+        /// <summary>
+        /// Ištrinti profilio nuotrauką
+        /// </summary>
+        [HttpDelete("profilis/nuotrauka")]
+        [Authorize]
+        public async Task<IActionResult> DeleteProfilePhoto()
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+
+            var (result, profile) = await _authService.GetProfileAsync(userId.Value);
+            if (!result.IsSuccess || string.IsNullOrEmpty(profile?.profilio_nuotrauka))
+            {
+                return NotFound(new { message = "Profilio nuotrauka nerasta" });
+            }
+
+            var deleted = _fileUploadService.DeleteImage(profile.profilio_nuotrauka);
+            if (!deleted)
+            {
+                return NotFound(new { message = "Nuotrauka nerasta" });
             }
 
             return NoContent();

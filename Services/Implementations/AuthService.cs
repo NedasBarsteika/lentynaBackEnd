@@ -144,6 +144,12 @@ namespace lentynaBackEnd.Services.Implementations
             return Result.Success();
         }
 
+        public async Task<IEnumerable<NaudotojasDto>> GetAllUsersAsync()
+        {
+            var naudotojai = await _naudotojasRepository.GetAllAsync();
+            return naudotojai.Select(MapToDto);
+        }
+
         private static NaudotojasDto MapToDto(Naudotojas naudotojas)
         {
             return new NaudotojasDto

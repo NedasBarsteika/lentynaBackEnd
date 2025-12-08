@@ -86,12 +86,10 @@ namespace lentynaBackEnd.Data
                 .HasForeignKey(k => k.ZanrasId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Zanras -> Nuotaika (1 to many)
+            // Nuotaika - JSON stulpelis žanrų sąrašui
             modelBuilder.Entity<Nuotaika>()
-                .HasOne(n => n.Zanras)
-                .WithMany(z => z.Nuotaikos)
-                .HasForeignKey(n => n.ZanrasId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .Property(n => n.ZanrasIds)
+                .HasColumnType("json");
 
             // Autorius -> Citata (1 to many)
             modelBuilder.Entity<Citata>()
@@ -212,13 +210,14 @@ namespace lentynaBackEnd.Data
                 new Zanras { Id = zanrasPoezija, pavadinimas = "Poezija" }
             );
 
-            // Seed data for Nuotaikos (linked to Zanrai)
+            // Seed data for Nuotaikos
+            // PASTABA: ZanrasIds bus užpildyti per migraciją SQL komandomis
             modelBuilder.Entity<Nuotaika>().HasData(
-                new Nuotaika { Id = Guid.Parse("11111111-1111-1111-1111-111111111111"), pavadinimas = "Dziugi", ZanrasId = zanrasFantastika },
-                new Nuotaika { Id = Guid.Parse("22222222-2222-2222-2222-222222222222"), pavadinimas = "Liudna", ZanrasId = zanrasRomanai },
-                new Nuotaika { Id = Guid.Parse("33333333-3333-3333-3333-333333333333"), pavadinimas = "Neutrali", ZanrasId = zanrasIstoriniai },
-                new Nuotaika { Id = Guid.Parse("44444444-4444-4444-4444-444444444444"), pavadinimas = "Itemptas", ZanrasId = zanrasTrileriai },
-                new Nuotaika { Id = Guid.Parse("55555555-5555-5555-5555-555555555555"), pavadinimas = "Romantiskas", ZanrasId = zanrasRomanai }
+                new Nuotaika { Id = Guid.Parse("11111111-1111-1111-1111-111111111111"), pavadinimas = "Dziugi" },
+                new Nuotaika { Id = Guid.Parse("22222222-2222-2222-2222-222222222222"), pavadinimas = "Liudna" },
+                new Nuotaika { Id = Guid.Parse("33333333-3333-3333-3333-333333333333"), pavadinimas = "Neutrali" },
+                new Nuotaika { Id = Guid.Parse("44444444-4444-4444-4444-444444444444"), pavadinimas = "Itemptas" },
+                new Nuotaika { Id = Guid.Parse("55555555-5555-5555-5555-555555555555"), pavadinimas = "Romantiskas" }
             );
 
             // Seed data for Autoriai

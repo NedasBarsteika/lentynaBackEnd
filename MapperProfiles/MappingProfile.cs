@@ -42,7 +42,9 @@ namespace lentynaBackEnd.MapperProfiles
             CreateMap<Zanras, ZanrasDto>();
 
             // Nuotaika mappings
-            CreateMap<Nuotaika, NuotaikaDto>();
+            // Zanrai kraunami rankiniu būdu service layer'yje
+            CreateMap<Nuotaika, NuotaikaDto>()
+                .ForMember(dest => dest.Zanrai, opt => opt.Ignore());
 
             // Komentaras mappings
             CreateMap<Komentaras, KomentarasDto>()
