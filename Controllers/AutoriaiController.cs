@@ -3,19 +3,24 @@ using lentynaBackEnd.DTOs.Autoriai;
 using lentynaBackEnd.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using lentynaBackEnd.DTOs.Citatos;
+
 
 namespace lentynaBackEnd.Controllers
 {
     [ApiController]
     [Route("api/autoriai")]
+    
     public class AutoriaiController : ControllerBase
     {
         private readonly IAutoriusService _autoriusService;
         private readonly IFileUploadService _fileUploadService;
+        private readonly ICitataService _citataService;
 
-        public AutoriaiController(IAutoriusService autoriusService, IFileUploadService fileUploadService)
+        public AutoriaiController(IAutoriusService autoriusService, ICitataService citataService, IFileUploadService fileUploadService)
         {
             _autoriusService = autoriusService;
+            _citataService = citataService;
             _fileUploadService = fileUploadService;
         }
 
@@ -138,6 +143,36 @@ namespace lentynaBackEnd.Controllers
             if (!deleted)
             {
                 return NotFound(new { message = "Nuotrauka nerasta" });
+        // [HttpGet("autorius/{autoriusId}")]
+        // public async Task<IActionResult> GetByAutoriusId(Guid autoriusId)
+        // {
+        //     var citatos = await _citataService.GetByAutoriusIdAsync(autoriusId);
+        //     return Ok(citatos);
+        // }
+
+        [HttpPost("citatos")]
+        [Authorize(Roles = "redaktorius,admin")]
+        public async Task<IActionResult> Create([FromBody] CreateCitataDto dto)
+        {
+            var (result, citata) = await _citataService.CreateAsync(dto);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(new { message = result.Message });
+            }
+
+            return Ok(citata);
+        }
+
+        [HttpDelete("citatos/{id}")]
+        [Authorize(Roles = "redaktorius,admin")]
+        public async Task<IActionResult> DeleteCitata(Guid id)
+        {
+            var result = await _citataService.DeleteAsync(id);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(new { message = result.Message });
             }
 
             return NoContent();
