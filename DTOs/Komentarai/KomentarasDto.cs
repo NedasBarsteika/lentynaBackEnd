@@ -13,4 +13,12 @@ namespace lentynaBackEnd.DTOs.Komentarai
         public Guid? KnygaId { get; set; }
         public Guid? TemaId { get; set; }
     }
+
+     public class DIKomentarasDto
+    {
+        public Guid Id { get; set; }
+        public DateTime sugeneravimo_data { get; set; }
+        public string tekstas { get; set; } = string.Empty;
+        public string modelis { get; set; } = string.Empty;
+    }
 }

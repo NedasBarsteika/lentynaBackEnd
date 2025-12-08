@@ -10,5 +10,6 @@ namespace lentynaBackEnd.Services.Interfaces
         Task<(Result Result, KomentarasDto? Komentaras)> CreateAsync(Guid naudotojasId, CreateKomentarasDto dto);
         Task<(Result Result, KomentarasDto? Komentaras)> UpdateAsync(Guid id, Guid naudotojasId, UpdateKomentarasDto dto);
         Task<Result> DeleteAsync(Guid id, Guid naudotojasId, bool isAdmin);
+        Task<(Result Result, DIKomentarasDto? Knyga)> GetDIComment(Guid id);
     }
 }
