@@ -44,6 +44,13 @@ namespace lentynaBackEnd.Repositories.Implementations
             return true;
         }
 
+        public async Task<bool> UpdateAsync(Nuotaika nuotaika)
+        {
+            _context.Nuotaikos.Update(nuotaika);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
         public async Task<bool> ExistsByNameAsync(string pavadinimas)
         {
             return await _context.Nuotaikos.AnyAsync(n => n.pavadinimas == pavadinimas);

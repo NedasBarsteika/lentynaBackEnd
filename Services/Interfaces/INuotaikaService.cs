@@ -6,7 +6,7 @@ namespace lentynaBackEnd.Services.Interfaces
     public interface INuotaikaService
     {
         Task<IEnumerable<NuotaikaDto>> GetAllAsync();
-        Task<(Result Result, NuotaikaDto? Nuotaika)> CreateAsync(string pavadinimas);
+        Task<(Result Result, NuotaikaDto? Nuotaika)> CreateAsync(string pavadinimas, List<Guid> zanrasIds);
         Task<Result> DeleteAsync(Guid id);
     }
 }

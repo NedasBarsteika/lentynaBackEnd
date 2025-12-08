@@ -154,12 +154,16 @@ namespace lentynaBackEnd.Repositories.Implementations
             // Filter by moods through Zanras relationship
             if (nuotaikuIds != null && nuotaikuIds.Count > 0)
             {
-                // Get all ZanrasIds that have the specified Nuotaikos
-                var zanruIdsFromNuotaikos = await _context.Nuotaikos
+                // ŽINGSNIS 1: Užkrauti nuotaikas į atmintį (EF Core gali išversti)
+                var nuotaikos = await _context.Nuotaikos
                     .Where(n => nuotaikuIds.Contains(n.Id))
-                    .Select(n => n.ZanrasId)
-                    .Distinct()
                     .ToListAsync();
+
+                // ŽINGSNIS 2: Procesuoti JSON ZanrasIds atmintyje
+                var zanruIdsFromNuotaikos = nuotaikos
+                    .SelectMany(n => n.ZanrasIds)
+                    .Distinct()
+                    .ToList();
 
                 // If we also have genre filter, intersect the results
                 if (zanruIds != null && zanruIds.Count > 0)

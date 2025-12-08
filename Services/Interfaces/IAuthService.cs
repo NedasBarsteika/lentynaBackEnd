@@ -12,5 +12,6 @@ namespace lentynaBackEnd.Services.Interfaces
         Task<(Result Result, NaudotojasDto? Profile)> UpdateProfileAsync(Guid naudotojasId, UpdateProfileDto dto);
         Task<Result> DeleteAccountAsync(Guid naudotojasId);
         Task<Result> UpdateRoleAsync(Guid naudotojasId, Roles newRole);
+        Task<IEnumerable<NaudotojasDto>> GetAllUsersAsync();
     }
 }

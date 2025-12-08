@@ -143,7 +143,8 @@ namespace lentynaBackEnd.Services.Implementations
             }
 
             // Get real weather forecast from api.meteo.lt (not saved to database)
-            var weather = await _meteoService.GetOroPrognozeAsync(balsavimas.balsavimo_pabaiga);
+            // Adding 2 days to voting end date for the actual meeting date
+            var weather = await _meteoService.GetOroPrognozeAsync(balsavimas.balsavimo_pabaiga.AddDays(2));
 
             return (Result.Success(), weather);
         }
