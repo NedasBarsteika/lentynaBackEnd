@@ -122,8 +122,10 @@ namespace lentynaBackEnd.Services.Implementations
         }
 
 
-         public async Task<(Result Result, DIKomentarasDto? Knyga)> GetDIComment(Guid id)
+        public async Task<(Result Result, DIKomentarasDto? Knyga)> GetDIComment(Guid id)
         {
+
+            _logger.LogInformation(null, "generating/updating DI comment for book");
             var knyga = await _knygaRepository.GetByIdWithDetailsAsync(id);
 
             if (knyga == null)
@@ -134,45 +136,33 @@ namespace lentynaBackEnd.Services.Implementations
             // Check if DI comment needs regeneration
             var dikom = await GenerateOrUpdateDICommentIfNeededAsync(id, knyga.knygos_pavadinimas);
 
+            _logger.LogInformation(null, "Dikom {dikom}", dikom);
+
             // Reload knyga to get updated DI comment
             var dto = _mapper.Map<DIKomentarasDto>(dikom);
 
             return (Result.Success(), dto);
         }
 
-         private async Task <Dirbtinio_intelekto_komentaras?> GenerateOrUpdateDICommentIfNeededAsync(Guid knygaId, string knygosPavadinimas)
+        private async Task<Dirbtinio_intelekto_komentaras?> GenerateOrUpdateDICommentIfNeededAsync(Guid knygaId, string knygosPavadinimas)
         {
             try
             {
-                // Check if regeneration is needed
-                var needsRegeneration = await _diKomentarasRepository.NeedsRegenerationAsync(knygaId);
-
-                if (!needsRegeneration)
-                {
-                    _logger.LogDebug("DI comment for book {KnygaId} is still fresh, skipping regeneration", knygaId);
-                    return null;
-                }
-
                 // Get all reviews for this book
                 var komentarai = (await _komentarasRepository.GetByKnygaIdAsync(knygaId))
                     .Where(k => k.Naudotojas != null)
                     .ToList();
 
-                // Generate AI review
-               
-                // Check if DI comment exists
                 var existingDIComment = await _diKomentarasRepository.GetByKnygaIdAsync(knygaId);
 
                 var now = DateTime.Now;
 
-                if ( existingDIComment == null || existingDIComment.sugeneravimo_data.AddDays(7) < now)
+                if (existingDIComment == null || existingDIComment.sugeneravimo_data.AddDays(7) < now || existingDIComment.tekstas == "Atsiprašome, nepavyko sugeneruoti automatinio atsiliepimo. Bandykite vėliau." || existingDIComment.tekstas == "Kol kas nėra jokių atsiliepimų apie šią knygą. Būkite pirmas, kuris pasidalins savo nuomone!")
                 {
-                     var aiReview = await _openAIService.GeneruotiKnygosAtsiliepima(knygosPavadinimas, komentarai);
+                    var aiReview = await _openAIService.GeneruotiKnygosAtsiliepima(knygosPavadinimas, komentarai);
 
-                      var model = Environment.GetEnvironmentVariable("OPENAI_MODEL") ?? "gpt-4o-mini";
+                    var model = Environment.GetEnvironmentVariable("OPENAI_MODEL") ?? "gpt-4o-mini";
 
-                    // Update existing comment
-                  
                     // Create new comment
                     var newDIComment = new Dirbtinio_intelekto_komentaras
                     {

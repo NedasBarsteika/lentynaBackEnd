@@ -85,7 +85,7 @@ namespace lentynaBackEnd.Controllers
             return NoContent();
         }
 
-         [HttpGet("komentarai/{id}")]
+        [HttpGet("komentarai/{id}")]
         public async Task<IActionResult> GetKomentarai(Guid id)
         {
             var komentarai = await _komentarasService.GetByKnygaIdAsync(id);
@@ -93,10 +93,14 @@ namespace lentynaBackEnd.Controllers
         }
 
         [HttpGet("dikomentaras/{id}")]
-        public async Task<IActionResult> Getdikomentaras (Guid id)
+        public async Task<IActionResult> Getdikomentaras(Guid id)
         {
-            var komentarai = await _komentarasService.GetDIComment(id);
-            return Ok(komentarai);
+            var (result, komentaras) = await _komentarasService.GetDIComment(id);
+            if (!result.IsSuccess)
+            {
+                return BadRequest(new { message = result.Message });
+            }
+            return Ok(komentaras);
         }
 
 
