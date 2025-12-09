@@ -35,27 +35,33 @@ namespace lentynaBackEnd.Services.Implementations
                 return (Result.Failure("Šiuo metu nėra aktyvaus balsavimo"), null);
             }
 
-
             var now = DateTime.Now;
             var balsavimasDto = await MapToDtoAsync(balsavimas);
             if (balsavimas.balsavimo_pabaiga < now || (balsavimas.uzbaigtas && balsavimas.isrinkta_knyga_id == null))
             {
                 int max = -1;
                 Guid? maxId = null;
+                KnygaBalsuDto? winningKnyga = null;
                 foreach (var knyga in balsavimasDto.nominuotos_knygos)
                 {
                     if (knyga.balsu_skaicius > max)
                     {
                         max = knyga.balsu_skaicius;
                         maxId = knyga.Id;
+                        winningKnyga = knyga;
                     }
                 }
                 balsavimas.isrinkta_knyga_id = maxId;
                 balsavimas.uzbaigtas = true;
                 await _balsavimasRepository.UpdateAsync(balsavimas);
+
+                // Update the DTO with the winning book
+                balsavimasDto.uzbaigtas = true;
+                balsavimasDto.isrinkta_knyga = winningKnyga;
+                return (Result.Success(), balsavimasDto);
             }
 
-            return (Result.Success(), await MapToDtoAsync(balsavimas));
+            return (Result.Success(), balsavimasDto);
         }
 
         public async Task<(Result Result, BalsavimasDto? Balsavimas)> GetByIdAsync(Guid id)
@@ -80,11 +86,19 @@ namespace lentynaBackEnd.Services.Implementations
 
             await _balsavimasRepository.AddAsync(balsavimas);
 
-            // Add initial votes with count 0 for nominated books
+            // Add nominated books to the many-to-many relationship
             foreach (var knygaId in dto.nominuotos_knygos)
             {
-                // We don't add dummy votes, the nominated books will be tracked
-                // through the actual votes cast
+                var knyga = await _knygaRepository.GetByIdAsync(knygaId);
+                if (knyga != null)
+                {
+                    var balsavimoKnyga = new BalsavimoKnyga
+                    {
+                        BalsavimasId = balsavimas.Id,
+                        KnygaId = knygaId
+                    };
+                    await _balsavimasRepository.AddBalsavimoKnygaAsync(balsavimoKnyga);
+                }
             }
 
             var result = await _balsavimasRepository.GetByIdWithDetailsAsync(balsavimas.Id);
@@ -120,6 +134,12 @@ namespace lentynaBackEnd.Services.Implementations
             if (knyga == null)
             {
                 return (Result.Failure(Constants.KnygaNerastas), false);
+            }
+
+            // Check if the book is nominated for this voting session
+            if (!await _balsavimasRepository.IsKnygaNominuotaAsync(dto.BalsavimasId, dto.KnygaId))
+            {
+                return (Result.Failure("Ši knyga nėra nominuota šiame balsavime"), false);
             }
 
             var balsas = new Balsas
@@ -174,11 +194,10 @@ namespace lentynaBackEnd.Services.Implementations
 
             var knygosBalsu = new List<KnygaBalsuDto>();
 
-            var uniqueKnygaIds = balsavimas.Balsai?.Select(b => b.KnygaId).Distinct() ?? Enumerable.Empty<Guid>();
-
-            foreach (var knygaId in uniqueKnygaIds)
+            // Use BalsavimoKnygos for nominated books instead of deriving from votes
+            foreach (var balsavimoKnyga in balsavimas.BalsavimoKnygos ?? new List<BalsavimoKnyga>())
             {
-                var knyga = balsavimas.Balsai?.FirstOrDefault(b => b.KnygaId == knygaId)?.Knyga;
+                var knyga = balsavimoKnyga.Knyga;
                 if (knyga != null)
                 {
                     knygosBalsu.Add(new KnygaBalsuDto
@@ -189,7 +208,7 @@ namespace lentynaBackEnd.Services.Implementations
                         autorius_vardas = knyga.Autorius != null
                             ? $"{knyga.Autorius.vardas} {knyga.Autorius.pavarde}"
                             : "",
-                        balsu_skaicius = voteCounts.GetValueOrDefault(knygaId, 0)
+                        balsu_skaicius = voteCounts.GetValueOrDefault(knyga.Id, 0)
                     });
                 }
             }

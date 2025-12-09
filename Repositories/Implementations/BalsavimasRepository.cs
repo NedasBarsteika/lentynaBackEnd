@@ -27,6 +27,9 @@ namespace lentynaBackEnd.Repositories.Implementations
                 .Include(b => b.Balsai)
                     .ThenInclude(ba => ba.Knyga)
                     .ThenInclude(k => k!.Autorius)
+                .Include(b => b.BalsavimoKnygos)
+                    .ThenInclude(bk => bk.Knyga)
+                    .ThenInclude(k => k.Autorius)
                 .FirstOrDefaultAsync(b => b.Id == id);
         }
 
@@ -35,8 +38,11 @@ namespace lentynaBackEnd.Repositories.Implementations
             var now = DateTime.UtcNow;
             return await _context.Balsavimai
                 .Include(b => b.Balsai)
-                .ThenInclude(ba => ba.Knyga)
-                .ThenInclude(k => k!.Autorius)
+                    .ThenInclude(ba => ba.Knyga)
+                    .ThenInclude(k => k!.Autorius)
+                .Include(b => b.BalsavimoKnygos)
+                    .ThenInclude(bk => bk.Knyga)
+                    .ThenInclude(k => k.Autorius)
                 .OrderByDescending(b => b.balsavimo_pabaiga)
                 // .Where(b => b.balsavimo_pradzia <= now && b.balsavimo_pabaiga >= now)
                 .FirstOrDefaultAsync();
@@ -111,6 +117,18 @@ namespace lentynaBackEnd.Repositories.Implementations
                 .GroupBy(b => b.KnygaId)
                 .Select(g => new { KnygaId = g.Key, Count = g.Count() })
                 .ToDictionaryAsync(x => x.KnygaId, x => x.Count);
+        }
+
+        public async Task AddBalsavimoKnygaAsync(BalsavimoKnyga balsavimoKnyga)
+        {
+            await _context.BalsavimoKnygos.AddAsync(balsavimoKnyga);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<bool> IsKnygaNominuotaAsync(Guid balsavimasId, Guid knygaId)
+        {
+            return await _context.BalsavimoKnygos
+                .AnyAsync(bk => bk.BalsavimasId == balsavimasId && bk.KnygaId == knygaId);
         }
     }
 }

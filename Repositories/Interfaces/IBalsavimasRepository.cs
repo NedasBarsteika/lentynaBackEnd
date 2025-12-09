@@ -16,5 +16,7 @@ namespace lentynaBackEnd.Repositories.Interfaces
         Task<bool> HasVotedAsync(Guid balsavimasId, Guid naudotojasId);
         Task<Balsas?> GetBalsasByIdAsync(Guid balsasId);
         Task<Dictionary<Guid, int>> GetVoteCountsAsync(Guid balsavimasId);
+        Task AddBalsavimoKnygaAsync(BalsavimoKnyga balsavimoKnyga);
+        Task<bool> IsKnygaNominuotaAsync(Guid balsavimasId, Guid knygaId);
     }
 }

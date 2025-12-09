@@ -25,6 +25,7 @@ namespace lentynaBackEnd.Data
         public DbSet<Tema> Temos { get; set; }
         public DbSet<Balsavimas> Balsavimai { get; set; }
         public DbSet<Balsas> Balsai { get; set; }
+        public DbSet<BalsavimoKnyga> BalsavimoKnygos { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -188,6 +189,22 @@ namespace lentynaBackEnd.Data
                 .WithMany(k => k.Balsai)
                 .HasForeignKey(b => b.KnygaId)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            // BalsavimoKnyga - Composite primary key (many-to-many join table)
+            modelBuilder.Entity<BalsavimoKnyga>()
+                .HasKey(bk => new { bk.BalsavimasId, bk.KnygaId });
+
+            modelBuilder.Entity<BalsavimoKnyga>()
+                .HasOne(bk => bk.Balsavimas)
+                .WithMany(b => b.BalsavimoKnygos)
+                .HasForeignKey(bk => bk.BalsavimasId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<BalsavimoKnyga>()
+                .HasOne(bk => bk.Knyga)
+                .WithMany(k => k.BalsavimoKnygos)
+                .HasForeignKey(bk => bk.KnygaId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Seed data for Zanrai
             var zanrasFantastika = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
