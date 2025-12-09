@@ -219,34 +219,6 @@ namespace lentynaBackEnd.Data
                         vertinimas = 4,
                         NaudotojasId = Guid.Parse("a0000000-0000-0000-0000-000000000004"),
                         KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000001") // Liūdna pasaka
-                    },
-                    // Komentarai forumo temoms
-                    new Komentaras
-                    {
-                        Id = Guid.NewGuid(),
-                        komentaro_tekstas = "Rekomenduoju pradėti nuo Biliūno novelių - trumpos ir labai jaudinančios!",
-                        komentaro_data = DateTime.UtcNow.AddDays(-4),
-                        vertinimas = 0,
-                        NaudotojasId = Guid.Parse("a0000000-0000-0000-0000-000000000005"),
-                        TemaId = Guid.Parse("d0000000-0000-0000-0000-000000000002")
-                    },
-                    new Komentaras
-                    {
-                        Id = Guid.NewGuid(),
-                        komentaro_tekstas = "Sutinku! Taip pat verta paminėti Krėvės \"Skirgailą\" - puiki istorinė drama.",
-                        komentaro_data = DateTime.UtcNow.AddDays(-3),
-                        vertinimas = 0,
-                        NaudotojasId = Guid.Parse("a0000000-0000-0000-0000-000000000004"),
-                        TemaId = Guid.Parse("d0000000-0000-0000-0000-000000000002")
-                    },
-                    new Komentaras
-                    {
-                        Id = Guid.NewGuid(),
-                        komentaro_tekstas = "Šiandien \"1984\" aktualesnė nei bet kada. Ypač kalbant apie privatumo ir stebėjimo temas.",
-                        komentaro_data = DateTime.UtcNow.AddDays(-2),
-                        vertinimas = 0,
-                        NaudotojasId = Guid.Parse("a0000000-0000-0000-0000-000000000004"),
-                        TemaId = Guid.Parse("d0000000-0000-0000-0000-000000000003")
                     }
                 };
 

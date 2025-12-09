@@ -113,13 +113,6 @@ namespace lentynaBackEnd.Data
                 .HasForeignKey(k => k.NaudotojasId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Tema -> Komentaras (1 to many, optional)
-            modelBuilder.Entity<Komentaras>()
-                .HasOne(k => k.Tema)
-                .WithMany(t => t.Komentarai)
-                .HasForeignKey(k => k.TemaId)
-                .OnDelete(DeleteBehavior.NoAction);
-
             // Knyga -> Dirbtinio_intelekto_komentaras (1 to many)
             modelBuilder.Entity<Dirbtinio_intelekto_komentaras>()
                 .HasOne(d => d.Knyga)

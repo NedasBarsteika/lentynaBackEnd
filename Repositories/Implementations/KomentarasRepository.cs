@@ -30,15 +30,6 @@ namespace lentynaBackEnd.Repositories.Implementations
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<Komentaras>> GetByTemaIdAsync(Guid temaId)
-        {
-            return await _context.Komentarai
-                .Where(k => k.TemaId == temaId)
-                .Include(k => k.Naudotojas)
-                .OrderBy(k => k.komentaro_data)
-                .ToListAsync();
-        }
-
         public async Task<IEnumerable<Komentaras>> GetByNaudotojasIdAsync(Guid naudotojasId)
         {
             return await _context.Komentarai

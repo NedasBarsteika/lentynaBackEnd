@@ -1,6 +1,5 @@
 using System.Security.Claims;
 using lentynaBackEnd.Common;
-using lentynaBackEnd.DTOs.Komentarai;
 using lentynaBackEnd.DTOs.Temos;
 using lentynaBackEnd.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -13,12 +12,10 @@ namespace lentynaBackEnd.Controllers
     public class TemosController : ControllerBase
     {
         private readonly ITemaService _temaService;
-        private readonly IKomentarasService _komentarasService;
 
-        public TemosController(ITemaService temaService, IKomentarasService komentarasService)
+        public TemosController(ITemaService temaService)
         {
             _temaService = temaService;
-            _komentarasService = komentarasService;
         }
 
         [HttpGet]
@@ -102,35 +99,6 @@ namespace lentynaBackEnd.Controllers
             }
 
             return NoContent();
-        }
-
-
-        [HttpGet("{id}/komentarai")]
-        public async Task<IActionResult> GetKomentarai(Guid id)
-        {
-            var komentarai = await _komentarasService.GetByTemaIdAsync(id);
-            return Ok(komentarai);
-        }
-
-        [HttpPost("{id}/komentarai")]
-        [Authorize]
-        public async Task<IActionResult> AddKomentaras(Guid id, [FromBody] CreateKomentarasDto dto)
-        {
-            var userId = GetCurrentUserId();
-            if (userId == null)
-            {
-                return Unauthorized();
-            }
-
-            dto.TemaId = id;
-            var (result, komentaras) = await _komentarasService.CreateAsync(userId.Value, dto);
-
-            if (!result.IsSuccess)
-            {
-                return BadRequest(new { message = result.Message });
-            }
-
-            return Ok(komentaras);
         }
 
         private Guid? GetCurrentUserId()

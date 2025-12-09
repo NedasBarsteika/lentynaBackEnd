@@ -12,6 +12,5 @@ namespace lentynaBackEnd.DTOs.Komentarai
         public int vertinimas { get; set; }
 
         public Guid? KnygaId { get; set; }
-        public Guid? TemaId { get; set; }
     }
 }

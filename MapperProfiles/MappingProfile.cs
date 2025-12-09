@@ -65,16 +65,13 @@ namespace lentynaBackEnd.MapperProfiles
             // Tema mappings
             CreateMap<Tema, TemaListDto>()
                 .ForMember(dest => dest.autorius_slapyvardis, opt => opt.MapFrom(src =>
-                    src.Naudotojas != null ? src.Naudotojas.slapyvardis : ""))
-                .ForMember(dest => dest.komentaru_skaicius, opt => opt.MapFrom(src =>
-                    src.Komentarai.Count));
+                    src.Naudotojas != null ? src.Naudotojas.slapyvardis : ""));
 
             CreateMap<Tema, TemaDetailDto>()
                 .ForMember(dest => dest.autorius_slapyvardis, opt => opt.MapFrom(src =>
                     src.Naudotojas != null ? src.Naudotojas.slapyvardis : ""))
                 .ForMember(dest => dest.autorius_nuotrauka, opt => opt.MapFrom(src =>
-                    src.Naudotojas != null ? src.Naudotojas.profilio_nuotrauka : null))
-                .ForMember(dest => dest.komentarai, opt => opt.MapFrom(src => src.Komentarai));
+                    src.Naudotojas != null ? src.Naudotojas.profilio_nuotrauka : null));
 
             // Sekimas mappings
             CreateMap<Autoriaus_sekimas, SekimasDto>()

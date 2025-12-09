@@ -11,48 +11,30 @@ namespace lentynaBackEnd.Services.Implementations
     {
         private readonly IKomentarasRepository _komentarasRepository;
         private readonly IKnygaRepository _knygaRepository;
-        private readonly ITemaRepository _temaRepository;
         private readonly IMapper _mapper;
-        private readonly IAutoriusRepository _autoriusRepository;
-        private readonly ISekimasRepository _sekimasRepository;
         private readonly IDIKomentarasRepository _diKomentarasRepository;
         private readonly IOpenAIService _openAIService;
-        private readonly IEmailService _emailService;
         private readonly ILogger<KnygaService> _logger;
 
         public KomentarasService(
             IKomentarasRepository komentarasRepository,
             IKnygaRepository knygaRepository,
-            ITemaRepository temaRepository,
             IMapper mapper,
-            IAutoriusRepository autoriusRepository,
-            ISekimasRepository sekimasRepository,
             IDIKomentarasRepository diKomentarasRepository,
             IOpenAIService openAIService,
-            IEmailService emailService,
             ILogger<KnygaService> logger)
         {
             _komentarasRepository = komentarasRepository;
             _knygaRepository = knygaRepository;
-            _temaRepository = temaRepository;
             _mapper = mapper;
-            _autoriusRepository = autoriusRepository;
-            _sekimasRepository = sekimasRepository;
             _diKomentarasRepository = diKomentarasRepository;
             _openAIService = openAIService;
-            _emailService = emailService;
             _logger = logger;
         }
 
         public async Task<IEnumerable<KomentarasDto>> GetByKnygaIdAsync(Guid knygaId)
         {
             var komentarai = await _komentarasRepository.GetByKnygaIdAsync(knygaId);
-            return _mapper.Map<IEnumerable<KomentarasDto>>(komentarai);
-        }
-
-        public async Task<IEnumerable<KomentarasDto>> GetByTemaIdAsync(Guid temaId)
-        {
-            var komentarai = await _komentarasRepository.GetByTemaIdAsync(temaId);
             return _mapper.Map<IEnumerable<KomentarasDto>>(komentarai);
         }
 
@@ -67,22 +49,12 @@ namespace lentynaBackEnd.Services.Implementations
                 }
             }
 
-            if (dto.TemaId.HasValue)
-            {
-                var tema = await _temaRepository.GetByIdAsync(dto.TemaId.Value);
-                if (tema == null)
-                {
-                    return (Result.Failure(Constants.TemaNerastas), null);
-                }
-            }
-
             var komentaras = new Komentaras
             {
                 komentaro_tekstas = dto.komentaro_tekstas,
                 vertinimas = dto.vertinimas,
                 NaudotojasId = naudotojasId,
-                KnygaId = dto.KnygaId,
-                TemaId = dto.TemaId
+                KnygaId = dto.KnygaId
             };
 
             await _komentarasRepository.AddAsync(komentaras);
