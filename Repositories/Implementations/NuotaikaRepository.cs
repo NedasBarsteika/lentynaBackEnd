@@ -16,12 +16,17 @@ namespace lentynaBackEnd.Repositories.Implementations
 
         public async Task<Nuotaika?> GetByIdAsync(Guid id)
         {
-            return await _context.Nuotaikos.FindAsync(id);
+            return await _context.Nuotaikos
+                .Include(n => n.NuotaikosZanrai)
+                    .ThenInclude(nz => nz.Zanras)
+                .FirstOrDefaultAsync(n => n.Id == id);
         }
 
         public async Task<IEnumerable<Nuotaika>> GetAllAsync()
         {
             return await _context.Nuotaikos
+                .Include(n => n.NuotaikosZanrai)
+                    .ThenInclude(nz => nz.Zanras)
                 .OrderBy(n => n.pavadinimas)
                 .ToListAsync();
         }
@@ -54,6 +59,12 @@ namespace lentynaBackEnd.Repositories.Implementations
         public async Task<bool> ExistsByNameAsync(string pavadinimas)
         {
             return await _context.Nuotaikos.AnyAsync(n => n.pavadinimas == pavadinimas);
+        }
+
+        public async Task AddNuotaikosZanrasAsync(NuotaikosZanras nuotaikosZanras)
+        {
+            await _context.NuotaikosZanrai.AddAsync(nuotaikosZanras);
+            await _context.SaveChangesAsync();
         }
     }
 }
