@@ -23,5 +23,6 @@ namespace lentynaBackEnd.Models.Entities
 
         // Navigation properties
         public List<Balsas> Balsai { get; set; } = new();
+        public List<BalsavimoKnyga> BalsavimoKnygos { get; set; } = new();
     }
 }

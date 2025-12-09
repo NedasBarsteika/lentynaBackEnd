@@ -31,22 +31,14 @@ namespace lentynaBackEnd.Services.Implementations
                 {
                     Id = nuotaika.Id,
                     pavadinimas = nuotaika.pavadinimas,
-                    Zanrai = new List<ZanrasDto>()
-                };
-
-                // Užkrauti kiekvieną žanrą
-                foreach (var zanrasId in nuotaika.ZanrasIds)
-                {
-                    var zanras = await _zanrasRepository.GetByIdAsync(zanrasId);
-                    if (zanras != null)
-                    {
-                        dto.Zanrai.Add(new ZanrasDto
+                    Zanrai = nuotaika.NuotaikosZanrai
+                        .Select(nz => new ZanrasDto
                         {
-                            Id = zanras.Id,
-                            pavadinimas = zanras.pavadinimas
-                        });
-                    }
-                }
+                            Id = nz.Zanras.Id,
+                            pavadinimas = nz.Zanras.pavadinimas
+                        })
+                        .ToList()
+                };
 
                 dtos.Add(dto);
             }
@@ -62,6 +54,7 @@ namespace lentynaBackEnd.Services.Implementations
             }
 
             // Validuoti, kad visi žanrai egzistuoja
+            var zanraiList = new List<Zanras>();
             if (zanrasIds != null && zanrasIds.Any())
             {
                 foreach (var zanrasId in zanrasIds)
@@ -71,37 +64,39 @@ namespace lentynaBackEnd.Services.Implementations
                     {
                         return (Result.Failure($"Žanras su ID {zanrasId} nerastas"), null);
                     }
+                    zanraiList.Add(zanras);
                 }
             }
 
             var nuotaika = new Nuotaika
             {
-                pavadinimas = pavadinimas,
-                ZanrasIds = zanrasIds ?? new List<Guid>()
+                pavadinimas = pavadinimas
             };
 
             await _nuotaikaRepository.AddAsync(nuotaika);
+
+            // Add the many-to-many relationships
+            foreach (var zanrasId in zanrasIds ?? new List<Guid>())
+            {
+                var nuotaikosZanras = new NuotaikosZanras
+                {
+                    NuotaikaId = nuotaika.Id,
+                    ZanrasId = zanrasId
+                };
+                await _nuotaikaRepository.AddNuotaikosZanrasAsync(nuotaikosZanras);
+            }
 
             // Grąžinti DTO su užkrautais Zanras objektais
             var createdDto = new NuotaikaDto
             {
                 Id = nuotaika.Id,
                 pavadinimas = nuotaika.pavadinimas,
-                Zanrai = new List<ZanrasDto>()
-            };
-
-            foreach (var zanrasId in nuotaika.ZanrasIds)
-            {
-                var zanras = await _zanrasRepository.GetByIdAsync(zanrasId);
-                if (zanras != null)
+                Zanrai = zanraiList.Select(z => new ZanrasDto
                 {
-                    createdDto.Zanrai.Add(new ZanrasDto
-                    {
-                        Id = zanras.Id,
-                        pavadinimas = zanras.pavadinimas
-                    });
-                }
-            }
+                    Id = z.Id,
+                    pavadinimas = z.pavadinimas
+                }).ToList()
+            };
 
             return (Result.Success(), createdDto);
         }

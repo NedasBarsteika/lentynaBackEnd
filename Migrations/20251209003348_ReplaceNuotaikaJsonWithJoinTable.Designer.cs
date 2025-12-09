@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using lentynaBackEnd.Data;
 
@@ -11,9 +12,11 @@ using lentynaBackEnd.Data;
 namespace lentynaBackEnd.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251209003348_ReplaceNuotaikaJsonWithJoinTable")]
+    partial class ReplaceNuotaikaJsonWithJoinTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -574,58 +577,6 @@ namespace lentynaBackEnd.Migrations
                     b.HasIndex("ZanrasId");
 
                     b.ToTable("NuotaikosZanrai");
-
-                    b.HasData(
-                        new
-                        {
-                            NuotaikaId = new Guid("11111111-1111-1111-1111-111111111111"),
-                            ZanrasId = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
-                        },
-                        new
-                        {
-                            NuotaikaId = new Guid("11111111-1111-1111-1111-111111111111"),
-                            ZanrasId = new Guid("cccccccc-cccc-cccc-cccc-cccccccccccc")
-                        },
-                        new
-                        {
-                            NuotaikaId = new Guid("22222222-2222-2222-2222-222222222222"),
-                            ZanrasId = new Guid("ffffffff-ffff-ffff-ffff-ffffffffffff")
-                        },
-                        new
-                        {
-                            NuotaikaId = new Guid("22222222-2222-2222-2222-222222222222"),
-                            ZanrasId = new Guid("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee")
-                        },
-                        new
-                        {
-                            NuotaikaId = new Guid("33333333-3333-3333-3333-333333333333"),
-                            ZanrasId = new Guid("dddddddd-dddd-dddd-dddd-dddddddddddd")
-                        },
-                        new
-                        {
-                            NuotaikaId = new Guid("33333333-3333-3333-3333-333333333333"),
-                            ZanrasId = new Guid("ffffffff-ffff-ffff-ffff-ffffffffffff")
-                        },
-                        new
-                        {
-                            NuotaikaId = new Guid("44444444-4444-4444-4444-444444444444"),
-                            ZanrasId = new Guid("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb")
-                        },
-                        new
-                        {
-                            NuotaikaId = new Guid("44444444-4444-4444-4444-444444444444"),
-                            ZanrasId = new Guid("11111111-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
-                        },
-                        new
-                        {
-                            NuotaikaId = new Guid("55555555-5555-5555-5555-555555555555"),
-                            ZanrasId = new Guid("cccccccc-cccc-cccc-cccc-cccccccccccc")
-                        },
-                        new
-                        {
-                            NuotaikaId = new Guid("55555555-5555-5555-5555-555555555555"),
-                            ZanrasId = new Guid("22222222-bbbb-bbbb-bbbb-bbbbbbbbbbbb")
-                        });
                 });
 
             modelBuilder.Entity("lentynaBackEnd.Models.Entities.Tema", b =>

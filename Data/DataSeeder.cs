@@ -219,34 +219,6 @@ namespace lentynaBackEnd.Data
                         vertinimas = 4,
                         NaudotojasId = Guid.Parse("a0000000-0000-0000-0000-000000000004"),
                         KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000001") // Liūdna pasaka
-                    },
-                    // Komentarai forumo temoms
-                    new Komentaras
-                    {
-                        Id = Guid.NewGuid(),
-                        komentaro_tekstas = "Rekomenduoju pradėti nuo Biliūno novelių - trumpos ir labai jaudinančios!",
-                        komentaro_data = DateTime.UtcNow.AddDays(-4),
-                        vertinimas = 0,
-                        NaudotojasId = Guid.Parse("a0000000-0000-0000-0000-000000000005"),
-                        TemaId = Guid.Parse("d0000000-0000-0000-0000-000000000002")
-                    },
-                    new Komentaras
-                    {
-                        Id = Guid.NewGuid(),
-                        komentaro_tekstas = "Sutinku! Taip pat verta paminėti Krėvės \"Skirgailą\" - puiki istorinė drama.",
-                        komentaro_data = DateTime.UtcNow.AddDays(-3),
-                        vertinimas = 0,
-                        NaudotojasId = Guid.Parse("a0000000-0000-0000-0000-000000000004"),
-                        TemaId = Guid.Parse("d0000000-0000-0000-0000-000000000002")
-                    },
-                    new Komentaras
-                    {
-                        Id = Guid.NewGuid(),
-                        komentaro_tekstas = "Šiandien \"1984\" aktualesnė nei bet kada. Ypač kalbant apie privatumo ir stebėjimo temas.",
-                        komentaro_data = DateTime.UtcNow.AddDays(-2),
-                        vertinimas = 0,
-                        NaudotojasId = Guid.Parse("a0000000-0000-0000-0000-000000000004"),
-                        TemaId = Guid.Parse("d0000000-0000-0000-0000-000000000003")
                     }
                 };
 
@@ -372,7 +344,7 @@ namespace lentynaBackEnd.Data
                         Id = Guid.Parse("e0000000-0000-0000-0000-000000000001"),
                         balsavimo_pradzia = DateTime.UtcNow.AddDays(-14),
                         balsavimo_pabaiga = DateTime.UtcNow.AddDays(-7),
-                        isrinkta_knyga_id = Guid.Parse("c0000000-0000-0000-0000-000000000005"), // Dievų miškas
+                        isrinkta_knyga_id = Guid.Parse("c0000000-0000-0000-0000-000000000004"), // Dievų miškas
                         uzbaigtas = true,
                     },
                     new Balsavimas
@@ -388,19 +360,62 @@ namespace lentynaBackEnd.Data
                 await context.SaveChangesAsync();
             }
 
+            // Seed BalsavimoKnygos (Nominated books for voting sessions)
+            if (!await context.BalsavimoKnygos.AnyAsync())
+            {
+                var balsavimoKnygos = new List<BalsavimoKnyga>
+                {
+                    // Nominated books for past voting session
+                    new BalsavimoKnyga
+                    {
+                        BalsavimasId = Guid.Parse("e0000000-0000-0000-0000-000000000001"),
+                        KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000004") // Dievų miškas
+                    },
+                    new BalsavimoKnyga
+                    {
+                        BalsavimasId = Guid.Parse("e0000000-0000-0000-0000-000000000001"),
+                        KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000003") // Skirgaila
+                    },
+                    new BalsavimoKnyga
+                    {
+                        BalsavimasId = Guid.Parse("e0000000-0000-0000-0000-000000000001"),
+                        KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000001") // Liūdna pasaka
+                    },
+                    // Nominated books for current voting session
+                    new BalsavimoKnyga
+                    {
+                        BalsavimasId = Guid.Parse("e0000000-0000-0000-0000-000000000002"),
+                        KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000005") // 1984
+                    },
+                    new BalsavimoKnyga
+                    {
+                        BalsavimasId = Guid.Parse("e0000000-0000-0000-0000-000000000002"),
+                        KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000006") // Gyvulių ūkis
+                    },
+                    new BalsavimoKnyga
+                    {
+                        BalsavimasId = Guid.Parse("e0000000-0000-0000-0000-000000000002"),
+                        KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000004") // Dievų miškas
+                    }
+                };
+
+                await context.BalsavimoKnygos.AddRangeAsync(balsavimoKnygos);
+                await context.SaveChangesAsync();
+            }
+
             // Seed Balsai (Votes)
             if (!await context.Balsai.AnyAsync())
             {
                 var balsai = new List<Balsas>
                 {
-                    // Balsai praėjusiam balsavimui
+                    // Balsai praėjusiam balsavimui (votes for nominated books only)
                     new Balsas
                     {
                         Id = Guid.NewGuid(),
                         pateikimo_data = DateTime.UtcNow.AddDays(-10),
                         NaudotojasId = Guid.Parse("a0000000-0000-0000-0000-000000000004"),
                         BalsavimasId = Guid.Parse("e0000000-0000-0000-0000-000000000001"),
-                        KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000005") // Dievų miškas
+                        KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000004") // Dievų miškas
                     },
                     new Balsas
                     {
@@ -408,9 +423,9 @@ namespace lentynaBackEnd.Data
                         pateikimo_data = DateTime.UtcNow.AddDays(-9),
                         NaudotojasId = Guid.Parse("a0000000-0000-0000-0000-000000000005"),
                         BalsavimasId = Guid.Parse("e0000000-0000-0000-0000-000000000001"),
-                        KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000005") // Dievų miškas
+                        KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000004") // Dievų miškas
                     },
-                    // Balsai dabartiniam balsavimui
+                    // Balsai dabartiniam balsavimui (votes for nominated books only)
                     new Balsas
                     {
                         Id = Guid.NewGuid(),
@@ -425,7 +440,7 @@ namespace lentynaBackEnd.Data
                         pateikimo_data = DateTime.UtcNow.AddDays(-1),
                         NaudotojasId = Guid.Parse("a0000000-0000-0000-0000-000000000005"),
                         BalsavimasId = Guid.Parse("e0000000-0000-0000-0000-000000000002"),
-                        KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000006") // Silva Rerum
+                        KnygaId = Guid.Parse("c0000000-0000-0000-0000-000000000006") // Gyvulių ūkis
                     }
                 };
 

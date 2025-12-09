@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace lentynaBackEnd.Models.Entities
 {
@@ -12,7 +11,7 @@ namespace lentynaBackEnd.Models.Entities
         [MaxLength(50)]
         public string pavadinimas { get; set; } = string.Empty;
 
-        // Saugome kaip JSON stulpelį duomenų bazėje
-        public List<Guid> ZanrasIds { get; set; } = new();
+        // Navigation properties
+        public List<NuotaikosZanras> NuotaikosZanrai { get; set; } = new();
     }
 }
