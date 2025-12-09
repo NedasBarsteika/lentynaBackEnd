@@ -1,5 +1,7 @@
+using System.Security.Claims;
 using lentynaBackEnd.Common;
 using lentynaBackEnd.DTOs.Autoriai;
+using lentynaBackEnd.DTOs.Sekimai;
 using lentynaBackEnd.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,12 +18,14 @@ namespace lentynaBackEnd.Controllers
         private readonly IAutoriusService _autoriusService;
         private readonly IFileUploadService _fileUploadService;
         private readonly ICitataService _citataService;
+        private readonly ISekimasService _sekimasService;
 
-        public AutoriaiController(IAutoriusService autoriusService, ICitataService citataService, IFileUploadService fileUploadService)
+        public AutoriaiController(IAutoriusService autoriusService, ICitataService citataService, IFileUploadService fileUploadService, ISekimasService sekimasService)
         {
             _autoriusService = autoriusService;
             _citataService = citataService;
             _fileUploadService = fileUploadService;
+            _sekimasService = sekimasService;
         }
 
         [HttpGet]
@@ -174,6 +178,99 @@ namespace lentynaBackEnd.Controllers
             }
 
             return NoContent();
+        }
+
+        [HttpPost("pranesimai/nauja-knyga/{knygaId}")]
+        [Authorize(Roles = "redaktorius,admin")]
+        public async Task<IActionResult> SendNewBookNotifications(Guid knygaId)
+        {
+            var result = await _autoriusService.SendNewBookNotificationsAsync(knygaId);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(new { message = result.Message });
+            }
+
+            return Ok(new { message = "Pranešimai sėkmingai išsiųsti" });
+        }
+
+        // Sekimai endpoints
+        [HttpGet("sekimai")]
+        [Authorize]
+        public async Task<IActionResult> GetAllSekimai()
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+
+            var sekimai = await _sekimasService.GetByNaudotojasIdAsync(userId.Value);
+            return Ok(sekimai);
+        }
+
+        [HttpGet("sekimai/tikrinti/{autoriusId}")]
+        [Authorize]
+        public async Task<IActionResult> CheckFollowing(Guid autoriusId)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+
+            var isFollowing = await _sekimasService.IsFollowingAsync(userId.Value, autoriusId);
+            return Ok(new { isFollowing });
+        }
+
+        [HttpPost("sekimai")]
+        [Authorize]
+        public async Task<IActionResult> Follow([FromBody] CreateSekimasDto dto)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+
+            var (result, sekimas) = await _sekimasService.FollowAsync(userId.Value, dto);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(new { message = result.Message });
+            }
+
+            return Ok(sekimas);
+        }
+
+        [HttpDelete("sekimai/{autoriusId}")]
+        [Authorize]
+        public async Task<IActionResult> Unfollow(Guid autoriusId)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+
+            var result = await _sekimasService.UnfollowAsync(userId.Value, autoriusId);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(new { message = result.Message });
+            }
+
+            return NoContent();
+        }
+
+        private Guid? GetCurrentUserId()
+        {
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+            {
+                return null;
+            }
+            return userId;
         }
     }
 }

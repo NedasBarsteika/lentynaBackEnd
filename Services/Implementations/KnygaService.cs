@@ -12,33 +12,24 @@ namespace lentynaBackEnd.Services.Implementations
     {
         private readonly IKnygaRepository _knygaRepository;
         private readonly IAutoriusRepository _autoriusRepository;
-        private readonly ISekimasRepository _sekimasRepository;
         private readonly IKomentarasRepository _komentarasRepository;
         private readonly IDIKomentarasRepository _diKomentarasRepository;
         private readonly IOpenAIService _openAIService;
-        private readonly IEmailService _emailService;
-        private readonly ILogger<KnygaService> _logger;
         private readonly IMapper _mapper;
 
         public KnygaService(
             IKnygaRepository knygaRepository,
             IAutoriusRepository autoriusRepository,
-            ISekimasRepository sekimasRepository,
             IKomentarasRepository komentarasRepository,
             IDIKomentarasRepository diKomentarasRepository,
             IOpenAIService openAIService,
-            IEmailService emailService,
-            ILogger<KnygaService> logger,
             IMapper mapper)
         {
             _knygaRepository = knygaRepository;
             _autoriusRepository = autoriusRepository;
-            _sekimasRepository = sekimasRepository;
             _komentarasRepository = komentarasRepository;
             _diKomentarasRepository = diKomentarasRepository;
             _openAIService = openAIService;
-            _emailService = emailService;
-            _logger = logger;
             _mapper = mapper;
         }
 
@@ -102,45 +93,7 @@ namespace lentynaBackEnd.Services.Implementations
             await _knygaRepository.AddAsync(knyga);
             await _autoriusRepository.UpdateKnyguSkaicius(dto.AutoriusId);
 
-            // Send email notifications to author's followers
-            await SendNewBookNotificationsAsync(autorius, knyga.knygos_pavadinimas);
-
             return await GetByIdAsync(knyga.Id);
-        }
-
-        private async Task SendNewBookNotificationsAsync(Autorius autorius, string bookTitle)
-        {
-            try
-            {
-                var followers = await _sekimasRepository.GetFollowersByAutoriusIdAsync(autorius.Id);
-                var authorName = $"{autorius.vardas} {autorius.pavarde}";
-
-                foreach (var follower in followers)
-                {
-                    if (follower.Naudotojas == null || string.IsNullOrEmpty(follower.Naudotojas.el_pastas))
-                        continue;
-
-                    try
-                    {
-                        await _emailService.SendNewBookNotificationAsync(
-                            follower.Naudotojas.el_pastas,
-                            follower.Naudotojas.slapyvardis ?? "Skaitytojau",
-                            authorName,
-                            bookTitle);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Failed to send notification to {Email}", follower.Naudotojas.el_pastas);
-                    }
-                }
-
-                _logger.LogInformation("Sent new book notifications for '{BookTitle}' to {Count} followers",
-                    bookTitle, followers.Count());
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error sending new book notifications");
-            }
         }
 
         public async Task<(Result Result, KnygaDetailDto? Knyga)> UpdateAsync(Guid id, UpdateKnygaDto dto)
