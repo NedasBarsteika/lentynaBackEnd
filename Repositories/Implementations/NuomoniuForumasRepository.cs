@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace lentynaBackEnd.Repositories.Implementations
 {
-    public class TemaRepository : ITemaRepository
+    public class NuomoniuForumasRepository : INuomoniuForumasRepository
     {
         private readonly ApplicationDbContext _context;
 
-        public TemaRepository(ApplicationDbContext context)
+        public NuomoniuForumasRepository(ApplicationDbContext context)
         {
             _context = context;
         }

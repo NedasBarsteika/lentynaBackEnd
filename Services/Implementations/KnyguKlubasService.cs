@@ -1,26 +1,26 @@
 using AutoMapper;
 using lentynaBackEnd.Common;
-using lentynaBackEnd.DTOs.Balsavimai;
+using lentynaBackEnd.DTOs.KnyguKlubas;
 using lentynaBackEnd.Models.Entities;
 using lentynaBackEnd.Repositories.Interfaces;
 using lentynaBackEnd.Services.Interfaces;
 
 namespace lentynaBackEnd.Services.Implementations
 {
-    public class BalsavimasService : IBalsavimasService
+    public class KnyguKlubasService : IKnyguKlubasService
     {
-        private readonly IBalsavimasRepository _balsavimasRepository;
+        private readonly IKnyguKlubasRepository _knyguKlubasRepository;
         private readonly IKnygaRepository _knygaRepository;
         private readonly IMeteoService _meteoService;
         private readonly IMapper _mapper;
 
-        public BalsavimasService(
-            IBalsavimasRepository balsavimasRepository,
+        public KnyguKlubasService(
+            IKnyguKlubasRepository knyguKlubasRepository,
             IKnygaRepository knygaRepository,
             IMeteoService meteoService,
             IMapper mapper)
         {
-            _balsavimasRepository = balsavimasRepository;
+            _knyguKlubasRepository = knyguKlubasRepository;
             _knygaRepository = knygaRepository;
             _meteoService = meteoService;
             _mapper = mapper;
@@ -28,7 +28,7 @@ namespace lentynaBackEnd.Services.Implementations
 
         public async Task<(Result Result, BalsavimasDto? Balsavimas)> GetCurrentAsync()
         {
-            var balsavimas = await _balsavimasRepository.GetCurrentAsync();
+            var balsavimas = await _knyguKlubasRepository.GetCurrentAsync();
 
             if (balsavimas == null)
             {
@@ -53,7 +53,7 @@ namespace lentynaBackEnd.Services.Implementations
                 }
                 balsavimas.isrinkta_knyga_id = maxId;
                 balsavimas.uzbaigtas = true;
-                await _balsavimasRepository.UpdateAsync(balsavimas);
+                await _knyguKlubasRepository.UpdateAsync(balsavimas);
 
                 // Update the DTO with the winning book
                 balsavimasDto.uzbaigtas = true;
@@ -66,7 +66,7 @@ namespace lentynaBackEnd.Services.Implementations
 
         public async Task<(Result Result, BalsavimasDto? Balsavimas)> GetByIdAsync(Guid id)
         {
-            var balsavimas = await _balsavimasRepository.GetByIdWithDetailsAsync(id);
+            var balsavimas = await _knyguKlubasRepository.GetByIdWithDetailsAsync(id);
 
             if (balsavimas == null)
             {
@@ -84,7 +84,7 @@ namespace lentynaBackEnd.Services.Implementations
                 balsavimo_pabaiga = dto.balsavimo_pabaiga,
             };
 
-            await _balsavimasRepository.AddAsync(balsavimas);
+            await _knyguKlubasRepository.AddAsync(balsavimas);
 
             // Add nominated books to the many-to-many relationship
             foreach (var knygaId in dto.nominuotos_knygos)
@@ -97,17 +97,17 @@ namespace lentynaBackEnd.Services.Implementations
                         BalsavimasId = balsavimas.Id,
                         KnygaId = knygaId
                     };
-                    await _balsavimasRepository.AddBalsavimoKnygaAsync(balsavimoKnyga);
+                    await _knyguKlubasRepository.AddBalsavimoKnygaAsync(balsavimoKnyga);
                 }
             }
 
-            var result = await _balsavimasRepository.GetByIdWithDetailsAsync(balsavimas.Id);
+            var result = await _knyguKlubasRepository.GetByIdWithDetailsAsync(balsavimas.Id);
             return (Result.Success(), await MapToDtoAsync(result!));
         }
 
         public async Task<(Result Result, bool Success)> VoteAsync(Guid naudotojasId, CreateBalsasDto dto)
         {
-            var balsavimas = await _balsavimasRepository.GetByIdAsync(dto.BalsavimasId);
+            var balsavimas = await _knyguKlubasRepository.GetByIdAsync(dto.BalsavimasId);
 
             if (balsavimas == null)
             {
@@ -125,7 +125,7 @@ namespace lentynaBackEnd.Services.Implementations
                 return (Result.Failure("Balsavimas nėra aktyvus"), false);
             }
 
-            if (await _balsavimasRepository.HasVotedAsync(dto.BalsavimasId, naudotojasId))
+            if (await _knyguKlubasRepository.HasVotedAsync(dto.BalsavimasId, naudotojasId))
             {
                 return (Result.Failure(Constants.JauBalsavote), false);
             }
@@ -137,7 +137,7 @@ namespace lentynaBackEnd.Services.Implementations
             }
 
             // Check if the book is nominated for this voting session
-            if (!await _balsavimasRepository.IsKnygaNominuotaAsync(dto.BalsavimasId, dto.KnygaId))
+            if (!await _knyguKlubasRepository.IsKnygaNominuotaAsync(dto.BalsavimasId, dto.KnygaId))
             {
                 return (Result.Failure("Ši knyga nėra nominuota šiame balsavime"), false);
             }
@@ -149,14 +149,14 @@ namespace lentynaBackEnd.Services.Implementations
                 KnygaId = dto.KnygaId
             };
 
-            await _balsavimasRepository.AddBalsasAsync(balsas);
+            await _knyguKlubasRepository.AddBalsasAsync(balsas);
 
             return (Result.Success(), true);
         }
 
         public async Task<Result> RemoveVoteAsync(Guid balsasId, Guid naudotojasId)
         {
-            var balsas = await _balsavimasRepository.GetBalsasByIdAsync(balsasId);
+            var balsas = await _knyguKlubasRepository.GetBalsasByIdAsync(balsasId);
 
             if (balsas == null)
             {
@@ -168,14 +168,14 @@ namespace lentynaBackEnd.Services.Implementations
                 return Result.Failure(Constants.NeturitePrieigos);
             }
 
-            await _balsavimasRepository.DeleteBalsasAsync(balsasId);
+            await _knyguKlubasRepository.DeleteBalsasAsync(balsasId);
 
             return Result.Success();
         }
 
         public async Task<(Result Result, string? OroPrognoze)> GetOroPrognozeAsync(Guid balsavimasId)
         {
-            var balsavimas = await _balsavimasRepository.GetByIdAsync(balsavimasId);
+            var balsavimas = await _knyguKlubasRepository.GetByIdAsync(balsavimasId);
 
             if (balsavimas == null)
             {
@@ -188,9 +188,23 @@ namespace lentynaBackEnd.Services.Implementations
             return (Result.Success(), weather);
         }
 
+        public async Task<(Result Result, Guid? VotedBookId)> GetUserVoteAsync(Guid balsavimasId, Guid naudotojasId)
+        {
+            var balsavimas = await _knyguKlubasRepository.GetByIdAsync(balsavimasId);
+
+            if (balsavimas == null)
+            {
+                return (Result.Failure(Constants.BalsavimasNerastas), null);
+            }
+
+            var balsas = await _knyguKlubasRepository.GetUserVoteAsync(balsavimasId, naudotojasId);
+
+            return (Result.Success(), balsas?.KnygaId);
+        }
+
         private async Task<BalsavimasDto> MapToDtoAsync(Balsavimas balsavimas)
         {
-            var voteCounts = await _balsavimasRepository.GetVoteCountsAsync(balsavimas.Id);
+            var voteCounts = await _knyguKlubasRepository.GetVoteCountsAsync(balsavimas.Id);
 
             var knygosBalsu = new List<KnygaBalsuDto>();
 

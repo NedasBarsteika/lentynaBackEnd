@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace lentynaBackEnd.DTOs.Balsavimai
+namespace lentynaBackEnd.DTOs.KnyguKlubas
 {
     public class CreateBalsasDto
     {

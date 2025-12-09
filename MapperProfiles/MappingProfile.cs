@@ -5,7 +5,7 @@ using lentynaBackEnd.DTOs.Irasai;
 using lentynaBackEnd.DTOs.Knygos;
 using lentynaBackEnd.DTOs.Komentarai;
 using lentynaBackEnd.DTOs.Sekimai;
-using lentynaBackEnd.DTOs.Temos;
+using lentynaBackEnd.DTOs.NuomoniuForumas;
 using lentynaBackEnd.Models.Entities;
 
 namespace lentynaBackEnd.MapperProfiles

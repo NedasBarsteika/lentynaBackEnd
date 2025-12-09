@@ -1,27 +1,27 @@
 using AutoMapper;
 using lentynaBackEnd.Common;
 using lentynaBackEnd.DTOs.Common;
-using lentynaBackEnd.DTOs.Temos;
+using lentynaBackEnd.DTOs.NuomoniuForumas;
 using lentynaBackEnd.Models.Entities;
 using lentynaBackEnd.Repositories.Interfaces;
 using lentynaBackEnd.Services.Interfaces;
 
 namespace lentynaBackEnd.Services.Implementations
 {
-    public class TemaService : ITemaService
+    public class NuomoniuForumasService : INuomoniuForumasService
     {
-        private readonly ITemaRepository _temaRepository;
+        private readonly INuomoniuForumasRepository _nuomoniuForumasRepository;
         private readonly IMapper _mapper;
 
-        public TemaService(ITemaRepository temaRepository, IMapper mapper)
+        public NuomoniuForumasService(INuomoniuForumasRepository nuomoniuForumasRepository, IMapper mapper)
         {
-            _temaRepository = temaRepository;
+            _nuomoniuForumasRepository = nuomoniuForumasRepository;
             _mapper = mapper;
         }
 
         public async Task<(Result Result, TemaDetailDto? Tema)> GetByIdAsync(Guid id)
         {
-            var tema = await _temaRepository.GetByIdWithDetailsAsync(id);
+            var tema = await _nuomoniuForumasRepository.GetByIdWithDetailsAsync(id);
 
             if (tema == null)
             {
@@ -33,7 +33,7 @@ namespace lentynaBackEnd.Services.Implementations
 
         public async Task<PaginatedResultDto<TemaListDto>> GetAllAsync(int page, int pageSize)
         {
-            var (items, totalCount) = await _temaRepository.GetAllAsync(page, pageSize);
+            var (items, totalCount) = await _nuomoniuForumasRepository.GetAllAsync(page, pageSize);
             var dtos = _mapper.Map<List<TemaListDto>>(items);
 
             return new PaginatedResultDto<TemaListDto>(dtos, page, pageSize, totalCount);
@@ -48,15 +48,15 @@ namespace lentynaBackEnd.Services.Implementations
                 NaudotojasId = naudotojasId
             };
 
-            await _temaRepository.AddAsync(tema);
+            await _nuomoniuForumasRepository.AddAsync(tema);
 
-            var result = await _temaRepository.GetByIdWithDetailsAsync(tema.Id);
+            var result = await _nuomoniuForumasRepository.GetByIdWithDetailsAsync(tema.Id);
             return (Result.Success(), _mapper.Map<TemaDetailDto>(result));
         }
 
         public async Task<(Result Result, TemaDetailDto? Tema)> UpdateAsync(Guid id, Guid naudotojasId, UpdateTemaDto dto)
         {
-            var tema = await _temaRepository.GetByIdAsync(id);
+            var tema = await _nuomoniuForumasRepository.GetByIdAsync(id);
 
             if (tema == null)
             {
@@ -71,15 +71,15 @@ namespace lentynaBackEnd.Services.Implementations
             if (!string.IsNullOrEmpty(dto.pavadinimas)) tema.pavadinimas = dto.pavadinimas;
             if (!string.IsNullOrEmpty(dto.tekstas)) tema.tekstas = dto.tekstas;
 
-            await _temaRepository.UpdateAsync(tema);
+            await _nuomoniuForumasRepository.UpdateAsync(tema);
 
-            var result = await _temaRepository.GetByIdWithDetailsAsync(id);
+            var result = await _nuomoniuForumasRepository.GetByIdWithDetailsAsync(id);
             return (Result.Success(), _mapper.Map<TemaDetailDto>(result));
         }
 
         public async Task<Result> DeleteAsync(Guid id, Guid naudotojasId, bool isModerator)
         {
-            var tema = await _temaRepository.GetByIdAsync(id);
+            var tema = await _nuomoniuForumasRepository.GetByIdAsync(id);
 
             if (tema == null)
             {
@@ -91,7 +91,7 @@ namespace lentynaBackEnd.Services.Implementations
                 return Result.Failure(Constants.NeturitePrieigos);
             }
 
-            await _temaRepository.SoftDeleteAsync(id);
+            await _nuomoniuForumasRepository.SoftDeleteAsync(id);
 
             return Result.Success();
         }

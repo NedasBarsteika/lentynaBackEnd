@@ -2,7 +2,7 @@ using lentynaBackEnd.Models.Entities;
 
 namespace lentynaBackEnd.Repositories.Interfaces
 {
-    public interface ITemaRepository
+    public interface INuomoniuForumasRepository
     {
         Task<Tema?> GetByIdAsync(Guid id);
         Task<Tema?> GetByIdWithDetailsAsync(Guid id);

@@ -1,6 +1,6 @@
 using lentynaBackEnd.DTOs.Knygos;
 
-namespace lentynaBackEnd.DTOs.Balsavimai
+namespace lentynaBackEnd.DTOs.KnyguKlubas
 {
     public class BalsavimasDto
     {

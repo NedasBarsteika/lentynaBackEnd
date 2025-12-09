@@ -1,6 +1,6 @@
 using System.Security.Claims;
 using lentynaBackEnd.Common;
-using lentynaBackEnd.DTOs.Temos;
+using lentynaBackEnd.DTOs.NuomoniuForumas;
 using lentynaBackEnd.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,14 +8,14 @@ using Microsoft.AspNetCore.Mvc;
 namespace lentynaBackEnd.Controllers
 {
     [ApiController]
-    [Route("api/temos")]
-    public class TemosController : ControllerBase
+    [Route("api/nuomoniu-forumas")]
+    public class NuomoniuForumasController : ControllerBase
     {
-        private readonly ITemaService _temaService;
+        private readonly INuomoniuForumasService _nuomoniuForumasService;
 
-        public TemosController(ITemaService temaService)
+        public NuomoniuForumasController(INuomoniuForumasService nuomoniuForumasService)
         {
-            _temaService = temaService;
+            _nuomoniuForumasService = nuomoniuForumasService;
         }
 
         [HttpGet]
@@ -23,14 +23,14 @@ namespace lentynaBackEnd.Controllers
             [FromQuery] int page = Constants.DefaultPage,
             [FromQuery] int pageSize = Constants.DefaultPageSize)
         {
-            var result = await _temaService.GetAllAsync(page, pageSize);
+            var result = await _nuomoniuForumasService.GetAllAsync(page, pageSize);
             return Ok(result);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
-            var (result, tema) = await _temaService.GetByIdAsync(id);
+            var (result, tema) = await _nuomoniuForumasService.GetByIdAsync(id);
 
             if (!result.IsSuccess)
             {
@@ -50,7 +50,7 @@ namespace lentynaBackEnd.Controllers
                 return Unauthorized();
             }
 
-            var (result, tema) = await _temaService.CreateAsync(userId.Value, dto);
+            var (result, tema) = await _nuomoniuForumasService.CreateAsync(userId.Value, dto);
 
             if (!result.IsSuccess)
             {
@@ -70,7 +70,7 @@ namespace lentynaBackEnd.Controllers
                 return Unauthorized();
             }
 
-            var (result, tema) = await _temaService.UpdateAsync(id, userId.Value, dto);
+            var (result, tema) = await _nuomoniuForumasService.UpdateAsync(id, userId.Value, dto);
 
             if (!result.IsSuccess)
             {
@@ -91,7 +91,7 @@ namespace lentynaBackEnd.Controllers
             }
 
             var isModerator = User.IsInRole("moderatorius") || User.IsInRole("admin");
-            var result = await _temaService.DeleteAsync(id, userId.Value, isModerator);
+            var result = await _nuomoniuForumasService.DeleteAsync(id, userId.Value, isModerator);
 
             if (!result.IsSuccess)
             {

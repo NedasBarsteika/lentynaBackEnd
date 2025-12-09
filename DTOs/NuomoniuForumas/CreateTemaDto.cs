@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace lentynaBackEnd.DTOs.Temos
+namespace lentynaBackEnd.DTOs.NuomoniuForumas
 {
     public class CreateTemaDto
     {

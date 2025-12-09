@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace lentynaBackEnd.Repositories.Implementations
 {
-    public class BalsavimasRepository : IBalsavimasRepository
+    public class KnyguKlubasRepository : IKnyguKlubasRepository
     {
         private readonly ApplicationDbContext _context;
 
-        public BalsavimasRepository(ApplicationDbContext context)
+        public KnyguKlubasRepository(ApplicationDbContext context)
         {
             _context = context;
         }
@@ -103,6 +103,12 @@ namespace lentynaBackEnd.Repositories.Implementations
         {
             return await _context.Balsai
                 .AnyAsync(b => b.BalsavimasId == balsavimasId && b.NaudotojasId == naudotojasId);
+        }
+
+        public async Task<Balsas?> GetUserVoteAsync(Guid balsavimasId, Guid naudotojasId)
+        {
+            return await _context.Balsai
+                .FirstOrDefaultAsync(b => b.BalsavimasId == balsavimasId && b.NaudotojasId == naudotojasId);
         }
 
         public async Task<Balsas?> GetBalsasByIdAsync(Guid balsasId)

@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using lentynaBackEnd.DTOs.Balsavimai;
+using lentynaBackEnd.DTOs.KnyguKlubas;
 using lentynaBackEnd.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -7,20 +7,20 @@ using Microsoft.AspNetCore.Mvc;
 namespace lentynaBackEnd.Controllers
 {
     [ApiController]
-    [Route("api/balsavimai")]
-    public class BalsavimaiController : ControllerBase
+    [Route("api/knygu-klubas")]
+    public class KnyguKlubasController : ControllerBase
     {
-        private readonly IBalsavimasService _balsavimasService;
+        private readonly IKnyguKlubasService _knyguKlubasService;
 
-        public BalsavimaiController(IBalsavimasService balsavimasService)
+        public KnyguKlubasController(IKnyguKlubasService knyguKlubasService)
         {
-            _balsavimasService = balsavimasService;
+            _knyguKlubasService = knyguKlubasService;
         }
 
         [HttpGet("dabartinis")]
         public async Task<IActionResult> GetCurrent()
         {
-            var (result, balsavimasDto) = await _balsavimasService.GetCurrentAsync();
+            var (result, balsavimasDto) = await _knyguKlubasService.GetCurrentAsync();
 
             if (!result.IsSuccess)
             {
@@ -34,7 +34,7 @@ namespace lentynaBackEnd.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
-            var (result, balsavimas) = await _balsavimasService.GetByIdAsync(id);
+            var (result, balsavimas) = await _knyguKlubasService.GetByIdAsync(id);
 
             if (!result.IsSuccess)
             {
@@ -48,7 +48,7 @@ namespace lentynaBackEnd.Controllers
         [Authorize(Roles = "admin")]
         public async Task<IActionResult> Create([FromBody] CreateBalsavimasDto dto)
         {
-            var (result, balsavimas) = await _balsavimasService.CreateAsync(dto);
+            var (result, balsavimas) = await _knyguKlubasService.CreateAsync(dto);
 
             if (!result.IsSuccess)
             {
@@ -61,7 +61,7 @@ namespace lentynaBackEnd.Controllers
         [HttpGet("{id}/oro-prognoze")]
         public async Task<IActionResult> GetOroPrognoze(Guid id)
         {
-            var (result, oroPrognoze) = await _balsavimasService.GetOroPrognozeAsync(id);
+            var (result, oroPrognoze) = await _knyguKlubasService.GetOroPrognozeAsync(id);
 
             if (!result.IsSuccess)
             {
@@ -69,6 +69,26 @@ namespace lentynaBackEnd.Controllers
             }
 
             return Ok(new { oro_prognoze = oroPrognoze });
+        }
+
+        [HttpGet("{id}/mano-balsas")]
+        [Authorize]
+        public async Task<IActionResult> GetMyVote(Guid id)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+
+            var (result, votedBookId) = await _knyguKlubasService.GetUserVoteAsync(id, userId.Value);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(new { message = result.Message });
+            }
+
+            return Ok(new { balsuota = votedBookId != null, knygaId = votedBookId });
         }
 
         private Guid? GetCurrentUserId()
@@ -83,14 +103,14 @@ namespace lentynaBackEnd.Controllers
     }
 
     [ApiController]
-    [Route("api/balsai")]
-    public class BalsaiController : ControllerBase
+    [Route("api/knygu-klubas/balsai")]
+    public class KnyguKlubasBalsaiController : ControllerBase
     {
-        private readonly IBalsavimasService _balsavimasService;
+        private readonly IKnyguKlubasService _knyguKlubasService;
 
-        public BalsaiController(IBalsavimasService balsavimasService)
+        public KnyguKlubasBalsaiController(IKnyguKlubasService knyguKlubasService)
         {
-            _balsavimasService = balsavimasService;
+            _knyguKlubasService = knyguKlubasService;
         }
 
         [HttpPost]
@@ -103,7 +123,7 @@ namespace lentynaBackEnd.Controllers
                 return Unauthorized();
             }
 
-            var (result, success) = await _balsavimasService.VoteAsync(userId.Value, dto);
+            var (result, success) = await _knyguKlubasService.VoteAsync(userId.Value, dto);
 
             if (!result.IsSuccess)
             {
@@ -123,7 +143,7 @@ namespace lentynaBackEnd.Controllers
                 return Unauthorized();
             }
 
-            var result = await _balsavimasService.RemoveVoteAsync(id, userId.Value);
+            var result = await _knyguKlubasService.RemoveVoteAsync(id, userId.Value);
 
             if (!result.IsSuccess)
             {
