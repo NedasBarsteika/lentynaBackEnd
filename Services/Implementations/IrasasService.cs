@@ -6,25 +6,40 @@ using lentynaBackEnd.Models.Entities;
 using lentynaBackEnd.Models.Enums;
 using lentynaBackEnd.Repositories.Interfaces;
 using lentynaBackEnd.Services.Interfaces;
+using System.Collections.Concurrent;
 
 namespace lentynaBackEnd.Services.Implementations
 {
     public class IrasasService : IIrasasService
     {
+        private static readonly ConcurrentDictionary<Guid, CachedRecommendations> _recommendationCache = new();
+
         private readonly IIrasasRepository _irasasRepository;
         private readonly IKnygaRepository _knygaRepository;
         private readonly ISekimasRepository _sekimasRepository;
+        private readonly IKnygosRekomendacijaRepository _knygosRekomendacijaRepository;
+        private readonly IOpenAIService _openAIService;
+        private readonly INaudotojasRepository _naudotojasRepository;
+        private readonly ILogger<IrasasService> _logger;
         private readonly IMapper _mapper;
 
         public IrasasService(
             IIrasasRepository irasasRepository,
             IKnygaRepository knygaRepository,
             ISekimasRepository sekimasRepository,
+            IKnygosRekomendacijaRepository knygosRekomendacijaRepository,
+            IOpenAIService openAIService,
+            INaudotojasRepository naudotojasRepository,
+            ILogger<IrasasService> logger,
             IMapper mapper)
         {
             _irasasRepository = irasasRepository;
             _knygaRepository = knygaRepository;
             _sekimasRepository = sekimasRepository;
+            _knygosRekomendacijaRepository = knygosRekomendacijaRepository;
+            _openAIService = openAIService;
+            _naudotojasRepository = naudotojasRepository;
+            _logger = logger;
             _mapper = mapper;
         }
 
@@ -42,6 +57,12 @@ namespace lentynaBackEnd.Services.Implementations
 
         public async Task<(Result Result, IrasasDto? Irasas)> CreateAsync(Guid naudotojasId, CreateIrasasDto dto)
         {
+            var naudotojas = await _naudotojasRepository.GetByIdAsync(naudotojasId);
+            if (naudotojas == null)
+            {
+                return (Result.Failure(Constants.NaudotojasNerastas), null);
+            }
+
             var knyga = await _knygaRepository.GetByIdAsync(dto.KnygaId);
             if (knyga == null)
             {
@@ -108,79 +129,94 @@ namespace lentynaBackEnd.Services.Implementations
 
         public async Task<IEnumerable<KnygaListDto>> GetRekomendacijosAsync(Guid naudotojasId)
         {
-            // Get user's read books
-            var perskaitytos = await _irasasRepository.GetByNaudotojasIdAndTipasAsync(naudotojasId, BookshelfTypes.skaityta);
-            var perskaitytosKnygosIds = perskaitytos.Select(i => i.KnygaId).ToHashSet();
-
-            // Get user's all books in bookshelf
-            var visos = await _irasasRepository.GetByNaudotojasIdAsync(naudotojasId);
-            var visosKnygosIds = visos.Select(i => i.KnygaId).ToHashSet();
-
-            // Get user's followed authors
-            var sekimai = await _sekimasRepository.GetByNaudotojasIdAsync(naudotojasId);
-            var sekimuAutoriaiIds = sekimai.Select(s => s.AutoriusId).ToHashSet();
-
-            // Get genres from read books
-            var zanraiIds = new HashSet<Guid>();
-            foreach (var irasas in perskaitytos)
+            var naudotojas = await _naudotojasRepository.GetByIdAsync(naudotojasId);
+            if (naudotojas == null)
             {
-                if (irasas.Knyga != null)
-                {
-                    zanraiIds.Add(irasas.Knyga.ZanrasId);
-                }
+                return Enumerable.Empty<KnygaListDto>();
             }
 
-            // Get popular books
-            var populiariosKnygos = await _knygaRepository.GetPopularBooksAsync(50);
+            var latestDbRecommendation = await _knygosRekomendacijaRepository.GetLatestByNaudotojasIdAsync(naudotojasId);
 
-            // Filter and score recommendations
-            var rekomendacijos = populiariosKnygos
+            // Reuse cache if DB window is valid and cache is present
+            if (latestDbRecommendation != null &&
+                latestDbRecommendation.rekomendacijos_pabaiga.HasValue &&
+                DateTime.UtcNow <= latestDbRecommendation.rekomendacijos_pabaiga.Value &&
+                _recommendationCache.TryGetValue(naudotojasId, out var cached) &&
+                cached.Items.Count > 0)
+            {
+                _logger.LogInformation("Returning cached recommendations for user {UserId}", naudotojasId);
+                return cached.Items;
+            }
+
+            var perskaitytos = (await _irasasRepository.GetByNaudotojasIdAndTipasAsync(naudotojasId, BookshelfTypes.skaityta)).ToList();
+            if (perskaitytos.Count == 0)
+            {
+                return Enumerable.Empty<KnygaListDto>();
+            }
+
+            var visos = (await _irasasRepository.GetByNaudotojasIdAsync(naudotojasId)).ToList();
+            var visosKnygosIds = visos.Select(i => i.KnygaId).ToHashSet();
+
+            var kandidatai = (await _knygaRepository.GetPopularBooksAsync(50))
                 .Where(k => !visosKnygosIds.Contains(k.Id))
-                .Select(k => new
-                {
-                    Knyga = k,
-                    Score = CalculateRecommendationScore(k, zanraiIds, sekimuAutoriaiIds)
-                })
-                .OrderByDescending(x => x.Score)
-                .Take(10)
-                .Select(x => x.Knyga)
                 .ToList();
 
-            var result = new List<KnygaListDto>();
-            foreach (var knyga in rekomendacijos)
+            if (kandidatai.Count == 0)
             {
+                return Enumerable.Empty<KnygaListDto>();
+            }
+
+            var rekomendacijuIds = await _openAIService.Generuoti_Rekomendaciju_sarasaAsync(
+                perskaitytos,
+                kandidatai,
+                visosKnygosIds);
+
+            var topIds = rekomendacijuIds.Take(5).ToList();
+            if (topIds.Count == 0)
+            {
+                _logger.LogWarning("AI nerekomendavo knygu naudotojui {UserId}; grąžiname tuščią sąrašą", naudotojasId);
+                return Enumerable.Empty<KnygaListDto>();
+            }
+
+            var result = new List<KnygaListDto>();
+
+            foreach (var id in topIds)
+            {
+                var knyga = kandidatai.FirstOrDefault(k => k.Id == id);
+                if (knyga == null) continue;
+
                 var dto = _mapper.Map<KnygaListDto>(knyga);
                 dto.vidutinis_vertinimas = await _knygaRepository.GetAverageRatingAsync(knyga.Id);
                 dto.komentaru_skaicius = await _knygaRepository.GetReviewCountAsync(knyga.Id);
                 result.Add(dto);
             }
 
+            // Persist recommendation window (7 days)
+            if (latestDbRecommendation == null || !latestDbRecommendation.rekomendacijos_pabaiga.HasValue || DateTime.UtcNow > latestDbRecommendation.rekomendacijos_pabaiga.Value)
+            {
+                await _knygosRekomendacijaRepository.AddAsync(naudotojasId);
+            }
+            else
+            {
+                latestDbRecommendation.rekomendacijos_pradzia = DateTime.UtcNow;
+                latestDbRecommendation.rekomendacijos_pabaiga = DateTime.UtcNow.AddDays(7);
+                await _knygosRekomendacijaRepository.UpdateAsync(latestDbRecommendation);
+            }
+
+            // Store in cache for up to 7 days
+            _recommendationCache[naudotojasId] = new CachedRecommendations
+            {
+                GeneratedAt = DateTime.UtcNow,
+                Items = result
+            };
+
             return result;
         }
 
-        private static int CalculateRecommendationScore(Knyga knyga, HashSet<Guid> zanraiIds, HashSet<Guid> autoriaiIds)
+        private class CachedRecommendations
         {
-            int score = 0;
-
-            // Score for matching genre
-            if (zanraiIds.Contains(knyga.ZanrasId))
-            {
-                score += 2;
-            }
-
-            // Score for followed author
-            if (autoriaiIds.Contains(knyga.AutoriusId))
-            {
-                score += 5;
-            }
-
-            // Score for bestseller
-            if (knyga.bestseleris)
-            {
-                score += 1;
-            }
-
-            return score;
+            public DateTime GeneratedAt { get; set; }
+            public List<KnygaListDto> Items { get; set; } = new();
         }
     }
 }

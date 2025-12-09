@@ -139,6 +139,7 @@ builder.Services.AddScoped<INuotaikaService, NuotaikaService>();
 builder.Services.AddScoped<IKomentarasService, KomentarasService>();
 builder.Services.AddScoped<IIrasasService, IrasasService>();
 builder.Services.AddScoped<INuomoniuForumasService, NuomoniuForumasService>();
+builder.Services.AddScoped<IKnygosRekomendacijaRepository, KnygosRekomendacijaRepository>();
 builder.Services.AddScoped<IKnyguKlubasService, KnyguKlubasService>();
 builder.Services.AddScoped<ISekimasService, SekimasService>();
 builder.Services.AddScoped<ICitataService, CitataService>();
