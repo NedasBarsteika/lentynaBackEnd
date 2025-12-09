@@ -162,6 +162,113 @@ Parašyk apibendrintą atsiliepimą apie šią knygą.";
             }
         }
 
+        public async Task<List<Guid>> Generuoti_Rekomendaciju_sarasaAsync(
+            List<Irasas> perskaitytosKnygos,
+            List<Knyga> kandidatuKnygos,
+            IEnumerable<Guid>? praleistiKnyguIds = null)
+        {
+            var perskaitytos = perskaitytosKnygos
+                .Where(i => string.Equals(i.tipas.ToString(), "skaityta", StringComparison.OrdinalIgnoreCase) && i.Knyga != null)
+                .Select(i => i.Knyga!)
+                .ToList();
+
+            var praleisti = new HashSet<Guid>(praleistiKnyguIds ?? Enumerable.Empty<Guid>());
+            var kandidatai = kandidatuKnygos
+                .Where(k => !praleisti.Contains(k.Id))
+                .ToList();
+
+            if (perskaitytos.Count == 0 || kandidatai.Count == 0)
+            {
+                return new List<Guid>();
+            }
+
+            var perskaitytuSarasas = string.Join("\n\n", perskaitytos.Select(k =>
+                $"{k.knygos_pavadinimas} | Autorius: {(k.Autorius != null ? $"{k.Autorius.vardas} {k.Autorius.pavarde}" : "Nenurodytas")} | Zanras: {k.Zanras?.pavadinimas ?? "Nenurodytas"} | Aprasymas: {Truncate(k.aprasymas, 180)}"));
+
+            var kandidatuSarasas = string.Join("\n\n", kandidatai.Select(k =>
+                $"ID: {k.Id}\n" +
+                $"Pavadinimas: {k.knygos_pavadinimas}\n" +
+                $"Autorius: {(k.Autorius != null ? $"{k.Autorius.vardas} {k.Autorius.pavarde}" : "Nenurodytas")}\n" +
+                $"Zanras: {k.Zanras?.pavadinimas ?? "Nenurodytas"}\n" +
+                $"Bestseleris: {(k.bestseleris ? "taip" : "ne")}\n" +
+                $"Aprasymas: {Truncate(k.aprasymas, 180)}"));
+
+            var praleidimoTekstas = praleisti.Count > 0 ? string.Join(", ", praleisti) : "nera";
+
+            var systemPrompt = @"Tu esi personalizuotu knygu rekomendaciju generatorius.
+Naudodamas perskaitytu knygu sarasa ir galimu kandidatu sarasa, parink iki 5 knygu, kurios labiausiai patiktu skaitytojui.
+Neitrauk knygu, kuriu ID yra praleidimo sarase.
+Atsakymas turi buti tik JSON:
+{""bookIds"": [""guid1"", ""guid2""]}";
+
+            var userPrompt = $@"Perskaitytos knygos:
+{perskaitytuSarasas}
+
+Knygos, kuriu nereikia rekomenduoti:
+{praleidimoTekstas}
+
+Galimi kandidatai:
+{kandidatuSarasas}
+
+Parink iki 5 labiausiai tinkančiu knygu. Grazink tik JSON su ID.";
+
+            try
+            {
+                var messages = new List<ChatMessage>
+                {
+                    new SystemChatMessage(systemPrompt),
+                    new UserChatMessage(userPrompt)
+                };
+
+                var options = new ChatCompletionOptions
+                {
+                    Temperature = 0.35f,
+                    MaxOutputTokenCount = 300
+                };
+
+                var response = await _chatClient.CompleteChatAsync(messages, options);
+                var content = response.Value.Content[0].Text;
+                _logger.LogInformation("AI recommendation raw response: {Content}", content);
+
+                var jsonStart = content.IndexOf('{');
+                var jsonEnd = content.LastIndexOf('}');
+
+                if (jsonStart >= 0 && jsonEnd > jsonStart)
+                {
+                    var jsonString = content.Substring(jsonStart, jsonEnd - jsonStart + 1);
+                    var result = JsonSerializer.Deserialize<AISearchResult>(jsonString);
+
+                    if (result?.bookIds != null)
+                    {
+                        return result.bookIds
+                            .Where(id => Guid.TryParse(id, out _))
+                            .Select(Guid.Parse)
+                            .ToList();
+                    }
+                }
+
+                _logger.LogWarning("Failed to parse AI recommendation response: {Content}", content);
+                return new List<Guid>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating recommendations via OpenAI");
+                return new List<Guid>();
+            }
+        }
+
+        private static string Truncate(string? text, int maxLength)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return "Nera aprasymo";
+            }
+
+            return text.Length <= maxLength
+                ? text
+                : text.Substring(0, maxLength) + "...";
+        }
+
         private class AISearchResult
         {
             public List<string>? bookIds { get; set; }

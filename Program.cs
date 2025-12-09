@@ -125,6 +125,7 @@ builder.Services.AddScoped<INuotaikaRepository, NuotaikaRepository>();
 builder.Services.AddScoped<IKomentarasRepository, KomentarasRepository>();
 builder.Services.AddScoped<IDIKomentarasRepository, DIKomentarasRepository>();
 builder.Services.AddScoped<IIrasasRepository, IrasasRepository>();
+builder.Services.AddScoped<IKnygosRekomendacijaRepository, KnygosRekomendacijaRepository>();
 builder.Services.AddScoped<ITemaRepository, TemaRepository>();
 builder.Services.AddScoped<IBalsavimasRepository, BalsavimasRepository>();
 builder.Services.AddScoped<ISekimasRepository, SekimasRepository>();
