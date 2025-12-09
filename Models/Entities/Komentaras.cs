@@ -30,10 +30,5 @@ namespace lentynaBackEnd.Models.Entities
 
         [ForeignKey("KnygaId")]
         public Knyga? Knyga { get; set; }
-
-        public Guid? TemaId { get; set; }
-
-        [ForeignKey("TemaId")]
-        public Tema? Tema { get; set; }
     }
 }

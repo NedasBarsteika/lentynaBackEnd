@@ -12,33 +12,24 @@ namespace lentynaBackEnd.Services.Implementations
     {
         private readonly IKnygaRepository _knygaRepository;
         private readonly IAutoriusRepository _autoriusRepository;
-        private readonly ISekimasRepository _sekimasRepository;
         private readonly IKomentarasRepository _komentarasRepository;
         private readonly IDIKomentarasRepository _diKomentarasRepository;
         private readonly IOpenAIService _openAIService;
-        private readonly IEmailService _emailService;
-        private readonly ILogger<KnygaService> _logger;
         private readonly IMapper _mapper;
 
         public KnygaService(
             IKnygaRepository knygaRepository,
             IAutoriusRepository autoriusRepository,
-            ISekimasRepository sekimasRepository,
             IKomentarasRepository komentarasRepository,
             IDIKomentarasRepository diKomentarasRepository,
             IOpenAIService openAIService,
-            IEmailService emailService,
-            ILogger<KnygaService> logger,
             IMapper mapper)
         {
             _knygaRepository = knygaRepository;
             _autoriusRepository = autoriusRepository;
-            _sekimasRepository = sekimasRepository;
             _komentarasRepository = komentarasRepository;
             _diKomentarasRepository = diKomentarasRepository;
             _openAIService = openAIService;
-            _emailService = emailService;
-            _logger = logger;
             _mapper = mapper;
         }
 
@@ -51,9 +42,6 @@ namespace lentynaBackEnd.Services.Implementations
                 return (Result.Failure(Constants.KnygaNerastas), null);
             }
 
-            // Check if DI comment needs regeneration
-            await GenerateOrUpdateDICommentIfNeededAsync(id, knyga.knygos_pavadinimas);
-
             // Reload knyga to get updated DI comment
             knyga = await _knygaRepository.GetByIdWithDetailsAsync(id);
 
@@ -62,63 +50,6 @@ namespace lentynaBackEnd.Services.Implementations
             dto.komentaru_skaicius = await _knygaRepository.GetReviewCountAsync(id);
 
             return (Result.Success(), dto);
-        }
-
-        private async Task GenerateOrUpdateDICommentIfNeededAsync(Guid knygaId, string knygosPavadinimas)
-        {
-            try
-            {
-                // Check if regeneration is needed
-                var needsRegeneration = await _diKomentarasRepository.NeedsRegenerationAsync(knygaId);
-
-                if (!needsRegeneration)
-                {
-                    _logger.LogDebug("DI comment for book {KnygaId} is still fresh, skipping regeneration", knygaId);
-                    return;
-                }
-
-                // Get all reviews for this book
-                var komentarai = (await _komentarasRepository.GetByKnygaIdAsync(knygaId))
-                    .Where(k => k.Naudotojas != null)
-                    .ToList();
-
-                // Generate AI review
-                var aiReview = await _openAIService.GeneruotiKnygosAtsiliepima(knygosPavadinimas, komentarai);
-
-                var model = Environment.GetEnvironmentVariable("OPENAI_MODEL") ?? "gpt-4o-mini";
-
-                // Check if DI comment exists
-                var existingDIComment = await _diKomentarasRepository.GetByKnygaIdAsync(knygaId);
-
-                if (existingDIComment != null)
-                {
-                    // Update existing comment
-                    existingDIComment.tekstas = aiReview;
-                    existingDIComment.modelis = model;
-                    await _diKomentarasRepository.UpdateAsync(existingDIComment);
-
-                    _logger.LogInformation("Updated DI comment for book {KnygaId}", knygaId);
-                }
-                else
-                {
-                    // Create new comment
-                    var newDIComment = new Dirbtinio_intelekto_komentaras
-                    {
-                        KnygaId = knygaId,
-                        tekstas = aiReview,
-                        modelis = model
-                    };
-
-                    await _diKomentarasRepository.AddAsync(newDIComment);
-
-                    _logger.LogInformation("Created new DI comment for book {KnygaId}", knygaId);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error generating/updating DI comment for book {KnygaId}", knygaId);
-                // Don't throw - we don't want to break the GetById operation if AI generation fails
-            }
         }
 
         public async Task<PaginatedResultDto<KnygaListDto>> GetAllAsync(KnygaFilterDto filter)
@@ -162,45 +93,7 @@ namespace lentynaBackEnd.Services.Implementations
             await _knygaRepository.AddAsync(knyga);
             await _autoriusRepository.UpdateKnyguSkaicius(dto.AutoriusId);
 
-            // Send email notifications to author's followers
-            await SendNewBookNotificationsAsync(autorius, knyga.knygos_pavadinimas);
-
             return await GetByIdAsync(knyga.Id);
-        }
-
-        private async Task SendNewBookNotificationsAsync(Autorius autorius, string bookTitle)
-        {
-            try
-            {
-                var followers = await _sekimasRepository.GetFollowersByAutoriusIdAsync(autorius.Id);
-                var authorName = $"{autorius.vardas} {autorius.pavarde}";
-
-                foreach (var follower in followers)
-                {
-                    if (follower.Naudotojas == null || string.IsNullOrEmpty(follower.Naudotojas.el_pastas))
-                        continue;
-
-                    try
-                    {
-                        await _emailService.SendNewBookNotificationAsync(
-                            follower.Naudotojas.el_pastas,
-                            follower.Naudotojas.slapyvardis ?? "Skaitytojau",
-                            authorName,
-                            bookTitle);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Failed to send notification to {Email}", follower.Naudotojas.el_pastas);
-                    }
-                }
-
-                _logger.LogInformation("Sent new book notifications for '{BookTitle}' to {Count} followers",
-                    bookTitle, followers.Count());
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error sending new book notifications");
-            }
         }
 
         public async Task<(Result Result, KnygaDetailDto? Knyga)> UpdateAsync(Guid id, UpdateKnygaDto dto)

@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace lentynaBackEnd.Repositories.Implementations
 {
-    public class TemaRepository : ITemaRepository
+    public class NuomoniuForumasRepository : INuomoniuForumasRepository
     {
         private readonly ApplicationDbContext _context;
 
-        public TemaRepository(ApplicationDbContext context)
+        public NuomoniuForumasRepository(ApplicationDbContext context)
         {
             _context = context;
         }
@@ -25,8 +25,6 @@ namespace lentynaBackEnd.Repositories.Implementations
         {
             return await _context.Temos
                 .Include(t => t.Naudotojas)
-                .Include(t => t.Komentarai.OrderBy(k => k.komentaro_data))
-                    .ThenInclude(k => k.Naudotojas)
                 .FirstOrDefaultAsync(t => t.Id == id && t.istrynimo_data == null);
         }
 
@@ -34,8 +32,7 @@ namespace lentynaBackEnd.Repositories.Implementations
         {
             var query = _context.Temos
                 .Where(t => t.istrynimo_data == null)
-                .Include(t => t.Naudotojas)
-                .Include(t => t.Komentarai);
+                .Include(t => t.Naudotojas);
 
             var totalCount = await query.CountAsync();
 

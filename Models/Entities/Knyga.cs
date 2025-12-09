@@ -45,5 +45,6 @@ namespace lentynaBackEnd.Models.Entities
         public List<Dirbtinio_intelekto_komentaras> DI_Komentarai { get; set; } = new();
         public List<Irasas> Irasai { get; set; } = new();
         public List<Balsas> Balsai { get; set; } = new();
+        public List<BalsavimoKnyga> BalsavimoKnygos { get; set; } = new();
     }
 }

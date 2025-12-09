@@ -5,7 +5,7 @@ using lentynaBackEnd.DTOs.Irasai;
 using lentynaBackEnd.DTOs.Knygos;
 using lentynaBackEnd.DTOs.Komentarai;
 using lentynaBackEnd.DTOs.Sekimai;
-using lentynaBackEnd.DTOs.Temos;
+using lentynaBackEnd.DTOs.NuomoniuForumas;
 using lentynaBackEnd.Models.Entities;
 
 namespace lentynaBackEnd.MapperProfiles
@@ -34,15 +34,16 @@ namespace lentynaBackEnd.MapperProfiles
                     src.Zanras != null ? src.Zanras.pavadinimas : ""));
 
             CreateMap<Knyga, KnygaDetailDto>()
-                .ForMember(dest => dest.Zanras, opt => opt.MapFrom(src => src.Zanras))
-                .ForMember(dest => dest.di_komentaras, opt => opt.MapFrom(src =>
-                    src.DI_Komentarai.FirstOrDefault()));
+                .ForMember(dest => dest.Zanras, opt => opt.MapFrom(src => src.Zanras));
+        
 
             // Zanras mappings
             CreateMap<Zanras, ZanrasDto>();
 
             // Nuotaika mappings
-            CreateMap<Nuotaika, NuotaikaDto>();
+            // Zanrai kraunami rankiniu būdu service layer'yje
+            CreateMap<Nuotaika, NuotaikaDto>()
+                .ForMember(dest => dest.Zanrai, opt => opt.Ignore());
 
             // Komentaras mappings
             CreateMap<Komentaras, KomentarasDto>()
@@ -64,16 +65,13 @@ namespace lentynaBackEnd.MapperProfiles
             // Tema mappings
             CreateMap<Tema, TemaListDto>()
                 .ForMember(dest => dest.autorius_slapyvardis, opt => opt.MapFrom(src =>
-                    src.Naudotojas != null ? src.Naudotojas.slapyvardis : ""))
-                .ForMember(dest => dest.komentaru_skaicius, opt => opt.MapFrom(src =>
-                    src.Komentarai.Count));
+                    src.Naudotojas != null ? src.Naudotojas.slapyvardis : ""));
 
             CreateMap<Tema, TemaDetailDto>()
                 .ForMember(dest => dest.autorius_slapyvardis, opt => opt.MapFrom(src =>
                     src.Naudotojas != null ? src.Naudotojas.slapyvardis : ""))
                 .ForMember(dest => dest.autorius_nuotrauka, opt => opt.MapFrom(src =>
-                    src.Naudotojas != null ? src.Naudotojas.profilio_nuotrauka : null))
-                .ForMember(dest => dest.komentarai, opt => opt.MapFrom(src => src.Komentarai));
+                    src.Naudotojas != null ? src.Naudotojas.profilio_nuotrauka : null));
 
             // Sekimas mappings
             CreateMap<Autoriaus_sekimas, SekimasDto>()

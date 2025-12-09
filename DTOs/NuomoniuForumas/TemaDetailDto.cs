@@ -1,6 +1,4 @@
-using lentynaBackEnd.DTOs.Komentarai;
-
-namespace lentynaBackEnd.DTOs.Temos
+namespace lentynaBackEnd.DTOs.NuomoniuForumas
 {
     public class TemaDetailDto
     {
@@ -12,6 +10,5 @@ namespace lentynaBackEnd.DTOs.Temos
         public Guid NaudotojasId { get; set; }
         public string autorius_slapyvardis { get; set; } = string.Empty;
         public string? autorius_nuotrauka { get; set; }
-        public List<KomentarasDto> komentarai { get; set; } = new();
     }
 }

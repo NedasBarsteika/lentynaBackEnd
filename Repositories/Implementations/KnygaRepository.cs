@@ -154,10 +154,10 @@ namespace lentynaBackEnd.Repositories.Implementations
             // Filter by moods through Zanras relationship
             if (nuotaikuIds != null && nuotaikuIds.Count > 0)
             {
-                // Get all ZanrasIds that have the specified Nuotaikos
-                var zanruIdsFromNuotaikos = await _context.Nuotaikos
-                    .Where(n => nuotaikuIds.Contains(n.Id))
-                    .Select(n => n.ZanrasId)
+                // Get ZanrasIds from the NuotaikosZanrai join table
+                var zanruIdsFromNuotaikos = await _context.NuotaikosZanrai
+                    .Where(nz => nuotaikuIds.Contains(nz.NuotaikaId))
+                    .Select(nz => nz.ZanrasId)
                     .Distinct()
                     .ToListAsync();
 

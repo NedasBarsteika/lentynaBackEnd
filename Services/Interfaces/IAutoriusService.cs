@@ -14,5 +14,6 @@ namespace lentynaBackEnd.Services.Interfaces
         Task<Result> DeleteAsync(Guid id);
         Task<IEnumerable<KnygaListDto>> GetKnygosAsync(Guid autoriusId);
         Task<IEnumerable<CitataDto>> GetCitatosAsync(Guid autoriusId);
+        Task<Result> SendNewBookNotificationsAsync(Guid knygaId);
     }
 }

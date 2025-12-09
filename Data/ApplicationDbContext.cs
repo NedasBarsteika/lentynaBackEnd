@@ -25,6 +25,8 @@ namespace lentynaBackEnd.Data
         public DbSet<Tema> Temos { get; set; }
         public DbSet<Balsavimas> Balsavimai { get; set; }
         public DbSet<Balsas> Balsai { get; set; }
+        public DbSet<BalsavimoKnyga> BalsavimoKnygos { get; set; }
+        public DbSet<NuotaikosZanras> NuotaikosZanrai { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -86,11 +88,20 @@ namespace lentynaBackEnd.Data
                 .HasForeignKey(k => k.ZanrasId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Zanras -> Nuotaika (1 to many)
-            modelBuilder.Entity<Nuotaika>()
-                .HasOne(n => n.Zanras)
-                .WithMany(z => z.Nuotaikos)
-                .HasForeignKey(n => n.ZanrasId)
+            // NuotaikosZanras - Composite primary key (many-to-many join table)
+            modelBuilder.Entity<NuotaikosZanras>()
+                .HasKey(nz => new { nz.NuotaikaId, nz.ZanrasId });
+
+            modelBuilder.Entity<NuotaikosZanras>()
+                .HasOne(nz => nz.Nuotaika)
+                .WithMany(n => n.NuotaikosZanrai)
+                .HasForeignKey(nz => nz.NuotaikaId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<NuotaikosZanras>()
+                .HasOne(nz => nz.Zanras)
+                .WithMany(z => z.NuotaikosZanrai)
+                .HasForeignKey(nz => nz.ZanrasId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // Autorius -> Citata (1 to many)
@@ -113,13 +124,6 @@ namespace lentynaBackEnd.Data
                 .WithMany(n => n.Komentarai)
                 .HasForeignKey(k => k.NaudotojasId)
                 .OnDelete(DeleteBehavior.Cascade);
-
-            // Tema -> Komentaras (1 to many, optional)
-            modelBuilder.Entity<Komentaras>()
-                .HasOne(k => k.Tema)
-                .WithMany(t => t.Komentarai)
-                .HasForeignKey(k => k.TemaId)
-                .OnDelete(DeleteBehavior.NoAction);
 
             // Knyga -> Dirbtinio_intelekto_komentaras (1 to many)
             modelBuilder.Entity<Dirbtinio_intelekto_komentaras>()
@@ -191,6 +195,22 @@ namespace lentynaBackEnd.Data
                 .HasForeignKey(b => b.KnygaId)
                 .OnDelete(DeleteBehavior.NoAction);
 
+            // BalsavimoKnyga - Composite primary key (many-to-many join table)
+            modelBuilder.Entity<BalsavimoKnyga>()
+                .HasKey(bk => new { bk.BalsavimasId, bk.KnygaId });
+
+            modelBuilder.Entity<BalsavimoKnyga>()
+                .HasOne(bk => bk.Balsavimas)
+                .WithMany(b => b.BalsavimoKnygos)
+                .HasForeignKey(bk => bk.BalsavimasId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<BalsavimoKnyga>()
+                .HasOne(bk => bk.Knyga)
+                .WithMany(k => k.BalsavimoKnygos)
+                .HasForeignKey(bk => bk.KnygaId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             // Seed data for Zanrai
             var zanrasFantastika = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
             var zanrasDetektyvai = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
@@ -212,13 +232,38 @@ namespace lentynaBackEnd.Data
                 new Zanras { Id = zanrasPoezija, pavadinimas = "Poezija" }
             );
 
-            // Seed data for Nuotaikos (linked to Zanrai)
+            // Seed data for Nuotaikos
+            var nuotaikaDziugi = Guid.Parse("11111111-1111-1111-1111-111111111111");
+            var nuotaikaLiudna = Guid.Parse("22222222-2222-2222-2222-222222222222");
+            var nuotaikaNeutrali = Guid.Parse("33333333-3333-3333-3333-333333333333");
+            var nuotaikaItemptas = Guid.Parse("44444444-4444-4444-4444-444444444444");
+            var nuotaikaRomantiskas = Guid.Parse("55555555-5555-5555-5555-555555555555");
+
             modelBuilder.Entity<Nuotaika>().HasData(
-                new Nuotaika { Id = Guid.Parse("11111111-1111-1111-1111-111111111111"), pavadinimas = "Dziugi", ZanrasId = zanrasFantastika },
-                new Nuotaika { Id = Guid.Parse("22222222-2222-2222-2222-222222222222"), pavadinimas = "Liudna", ZanrasId = zanrasRomanai },
-                new Nuotaika { Id = Guid.Parse("33333333-3333-3333-3333-333333333333"), pavadinimas = "Neutrali", ZanrasId = zanrasIstoriniai },
-                new Nuotaika { Id = Guid.Parse("44444444-4444-4444-4444-444444444444"), pavadinimas = "Itemptas", ZanrasId = zanrasTrileriai },
-                new Nuotaika { Id = Guid.Parse("55555555-5555-5555-5555-555555555555"), pavadinimas = "Romantiskas", ZanrasId = zanrasRomanai }
+                new Nuotaika { Id = nuotaikaDziugi, pavadinimas = "Dziugi" },
+                new Nuotaika { Id = nuotaikaLiudna, pavadinimas = "Liudna" },
+                new Nuotaika { Id = nuotaikaNeutrali, pavadinimas = "Neutrali" },
+                new Nuotaika { Id = nuotaikaItemptas, pavadinimas = "Itemptas" },
+                new Nuotaika { Id = nuotaikaRomantiskas, pavadinimas = "Romantiskas" }
+            );
+
+            // Seed data for NuotaikosZanrai (many-to-many relationships)
+            modelBuilder.Entity<NuotaikosZanras>().HasData(
+                // Dziugi - Fantastika, Romanai
+                new NuotaikosZanras { NuotaikaId = nuotaikaDziugi, ZanrasId = zanrasFantastika },
+                new NuotaikosZanras { NuotaikaId = nuotaikaDziugi, ZanrasId = zanrasRomanai },
+                // Liudna - Biografijos, Istoriniai
+                new NuotaikosZanras { NuotaikaId = nuotaikaLiudna, ZanrasId = zanrasBiografijos },
+                new NuotaikosZanras { NuotaikaId = nuotaikaLiudna, ZanrasId = zanrasIstoriniai },
+                // Neutrali - Moksline fantastika, Biografijos
+                new NuotaikosZanras { NuotaikaId = nuotaikaNeutrali, ZanrasId = zanrasMoksline },
+                new NuotaikosZanras { NuotaikaId = nuotaikaNeutrali, ZanrasId = zanrasBiografijos },
+                // Itemptas - Detektyvai, Trileriai
+                new NuotaikosZanras { NuotaikaId = nuotaikaItemptas, ZanrasId = zanrasDetektyvai },
+                new NuotaikosZanras { NuotaikaId = nuotaikaItemptas, ZanrasId = zanrasTrileriai },
+                // Romantiskas - Romanai, Poezija
+                new NuotaikosZanras { NuotaikaId = nuotaikaRomantiskas, ZanrasId = zanrasRomanai },
+                new NuotaikosZanras { NuotaikaId = nuotaikaRomantiskas, ZanrasId = zanrasPoezija }
             );
 
             // Seed data for Autoriai

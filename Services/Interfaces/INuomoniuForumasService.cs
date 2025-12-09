@@ -1,10 +1,10 @@
 using lentynaBackEnd.Common;
 using lentynaBackEnd.DTOs.Common;
-using lentynaBackEnd.DTOs.Temos;
+using lentynaBackEnd.DTOs.NuomoniuForumas;
 
 namespace lentynaBackEnd.Services.Interfaces
 {
-    public interface ITemaService
+    public interface INuomoniuForumasService
     {
         Task<(Result Result, TemaDetailDto? Tema)> GetByIdAsync(Guid id);
         Task<PaginatedResultDto<TemaListDto>> GetAllAsync(int page, int pageSize);

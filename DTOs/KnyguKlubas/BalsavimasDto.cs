@@ -1,6 +1,6 @@
 using lentynaBackEnd.DTOs.Knygos;
 
-namespace lentynaBackEnd.DTOs.Balsavimai
+namespace lentynaBackEnd.DTOs.KnyguKlubas
 {
     public class BalsavimasDto
     {
@@ -8,7 +8,7 @@ namespace lentynaBackEnd.DTOs.Balsavimai
         public DateTime balsavimo_pradzia { get; set; }
         public DateTime balsavimo_pabaiga { get; set; }
         public bool uzbaigtas { get; set; }
-        public KnygaListDto? isrinkta_knyga { get; set; }
+        public KnygaBalsuDto? isrinkta_knyga { get; set; }
         public List<KnygaBalsuDto> nominuotos_knygos { get; set; } = new();
         public int viso_balsu { get; set; }
     }

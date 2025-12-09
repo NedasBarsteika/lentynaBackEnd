@@ -101,15 +101,15 @@ namespace lentynaBackEnd.Services.Implementations
         </div>
         <div class=""content"">
             <p>Sveiki, {toName}!</p>
-            <p>Puikios naujienos! Autorius, kuri sekate, isleido nauja knyga:</p>
+            <p>Puikios naujienos! Autorius, kurį sekate, išleido naują knygą:</p>
             <p class=""book-title"">{bookTitle}</p>
             <p class=""author-name"">Autorius: {authorName}</p>
-            <p>Apsilankykite Lentyna svetaineje, kad suzinotumete daugiau apie sia knyga ir pridetumete ja i savo skaitymo sarasa.</p>
-            <a href=""#"" class=""button"">Perziureti knyga</a>
+            <p>Apsilankykite Lentyna svetainėje, kad sužinotumėte daugiau apie šią knygą ir pridėtumėte ją į savo skaitymų sąrašą.</p>
+            <a href=""#"" class=""button"">Peržiūrėti knygą</a>
         </div>
         <div class=""footer"">
-            <p>Jus gavote si laiska, nes sekate autoriu {authorName} Lentyna svetaineje.</p>
-            <p>© {DateTime.Now.Year} Lentyna - Knygu Vertinimo Sistema</p>
+            <p>Jūs gavote šį laišką, nes sekate autorių {authorName} Lentyna svetainėje.</p>
+            <p>© {DateTime.Now.Year} Lentyna - Knygų Vertinimo Sistema</p>
         </div>
     </div>
 </body>

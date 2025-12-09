@@ -28,7 +28,5 @@ namespace lentynaBackEnd.Models.Entities
         [ForeignKey("NaudotojasId")]
         public Naudotojas? Naudotojas { get; set; }
 
-        // Navigation properties
-        public List<Komentaras> Komentarai { get; set; } = new();
     }
 }

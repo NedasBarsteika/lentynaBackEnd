@@ -6,6 +6,7 @@ using lentynaBackEnd.DTOs.Knygos;
 using lentynaBackEnd.Models.Entities;
 using lentynaBackEnd.Repositories.Interfaces;
 using lentynaBackEnd.Services.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace lentynaBackEnd.Services.Implementations
 {
@@ -14,17 +15,23 @@ namespace lentynaBackEnd.Services.Implementations
         private readonly IAutoriusRepository _autoriusRepository;
         private readonly ISekimasRepository _sekimasRepository;
         private readonly IKnygaRepository _knygaRepository;
+        private readonly IEmailService _emailService;
+        private readonly ILogger<AutoriusService> _logger;
         private readonly IMapper _mapper;
 
         public AutoriusService(
             IAutoriusRepository autoriusRepository,
             ISekimasRepository sekimasRepository,
             IKnygaRepository knygaRepository,
+            IEmailService emailService,
+            ILogger<AutoriusService> logger,
             IMapper mapper)
         {
             _autoriusRepository = autoriusRepository;
             _sekimasRepository = sekimasRepository;
             _knygaRepository = knygaRepository;
+            _emailService = emailService;
+            _logger = logger;
             _mapper = mapper;
         }
 
@@ -120,6 +127,56 @@ namespace lentynaBackEnd.Services.Implementations
         {
             var citatos = await _autoriusRepository.GetCitatosAsync(autoriusId);
             return _mapper.Map<IEnumerable<CitataDto>>(citatos);
+        }
+
+        public async Task<Result> SendNewBookNotificationsAsync(Guid knygaId)
+        {
+            var knyga = await _knygaRepository.GetByIdWithDetailsAsync(knygaId);
+            if (knyga == null)
+            {
+                return Result.Failure(Constants.KnygaNerastas);
+            }
+
+            var autorius = await _autoriusRepository.GetByIdAsync(knyga.AutoriusId);
+            if (autorius == null)
+            {
+                return Result.Failure(Constants.AutoriusNerastas);
+            }
+
+            try
+            {
+                var followers = await _sekimasRepository.GetFollowersByAutoriusIdAsync(autorius.Id);
+                var authorName = $"{autorius.vardas} {autorius.pavarde}";
+
+                foreach (var follower in followers)
+                {
+                    if (follower.Naudotojas == null || string.IsNullOrEmpty(follower.Naudotojas.el_pastas))
+                        continue;
+
+                    try
+                    {
+                        await _emailService.SendNewBookNotificationAsync(
+                            follower.Naudotojas.el_pastas,
+                            follower.Naudotojas.slapyvardis ?? "Skaitytojau",
+                            authorName,
+                            knyga.knygos_pavadinimas);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to send notification to {Email}", follower.Naudotojas.el_pastas);
+                    }
+                }
+
+                _logger.LogInformation("Sent new book notifications for '{BookTitle}' to {Count} followers",
+                    knyga.knygos_pavadinimas, followers.Count());
+
+                return Result.Success();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending new book notifications");
+                return Result.Failure("Nepavyko išsiųsti pranešimų");
+            }
         }
     }
 }
